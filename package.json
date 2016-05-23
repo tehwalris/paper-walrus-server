@@ -1,0 +1,32 @@
+{
+  "name": "paper-walrus-server",
+  "version": "0.1.0",
+  "description": "Server component of the paper-walrus project.",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tehwalris/paper-walrus-server.git"
+  },
+  "keywords": [
+    "papers",
+    "handouts",
+    "sorting",
+    "storage",
+    "database",
+    "management",
+    "searching"
+  ],
+  "author": "Philippe \"tehwalris\" Voinov",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tehwalris/paper-walrus-server/issues"
+  },
+  "homepage": "https://github.com/tehwalris/paper-walrus-server#readme",
+  "dependencies": {
+    "lodash": "^4.12.0",
+    "socket.io": "^1.4.6"
+  }
+}
