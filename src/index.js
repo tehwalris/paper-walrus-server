@@ -1,22 +1,11 @@
 'use strict';
 const server = require('http').createServer(),
   io = require('socket.io')(server),
-  Store = require('./Store'); 
+  StorePersister = require('./StorePersister'); 
 
 const port = 3000;
-const store = new Store({
-  tags: {
-    id1: {name: 'Maths', type: 'subject'},
-    id2: {name: 'French', type: 'subject'},
-    id3: {name: 'verbs', type: 'plain'},
-    id4: {name: 'adjectives', type: 'plain'},
-  },
-  items: [
-    {tags: ['id1'], data: {type: 'image', source: 'fakeSource', id: 'id213'}},
-    {tags: ['id2', 'id3'], data: {type: 'image', source: 'fakeSource', id: 'id1234'}},
-    {tags: ['id2', 'id4'], data: {type: 'image', source: 'fakeSource', id: 'id453'}},
-  ],
-});
+const storePersister = new StorePersister('/home/philippe/.paperWalrus/store.json'); //TODO
+const store = storePersister.getStore();
 
 io.on('connection', function(socket){
   console.log('client connnected');
