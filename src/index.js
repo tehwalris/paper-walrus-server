@@ -1,10 +1,10 @@
 'use strict';
 const server = require('http').createServer(),
   io = require('socket.io')(server),
-  StorePersister = require('./StorePersister'); 
+  StorePersister = require('./StorePersister'),
+  config = require('./config'); 
 
-const port = 3000;
-const storePersister = new StorePersister('/home/philippe/.paperWalrus/store.json'); //TODO
+const storePersister = new StorePersister(config.storePath);
 const store = storePersister.getStore();
 
 io.on('connection', function(socket){
@@ -22,5 +22,5 @@ io.on('connection', function(socket){
 });
 
 
-server.listen(port);
-console.log(`Listening on port ${port}`);
+server.listen(config.port);
+console.log('System up, config:', config);
