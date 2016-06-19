@@ -23,7 +23,8 @@ class StorePersister {
       fs.accessSync(this._path);
       data = JSON.parse(fs.readFileSync(this._path));
     } catch (e) {
-      data = _.cloneDeep(defaultStore);
+      data = _.cloneDeep(Store.defaultStore);
+      this._onStoreChange(data);
     }
     return this._bindStore(new Store(data));
   }
@@ -50,10 +51,5 @@ function handleErrorHard(err) {
   if(err)
     throw err;
 }
-
-const defaultStore = {
-  tags: {},
-  items: [],
-};
 
 module.exports = StorePersister;

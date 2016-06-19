@@ -1,6 +1,6 @@
 'use strict';
-const server = require('http').createServer(),
-  io = require('socket.io')(server),
+const express = require('express'),
+  bodyParser = require('body-parser'),
   StorePersister = require('./StorePersister'),
   ImageStorage = require('./ImageStorage'),
   config = require('./config'); 
@@ -9,27 +9,51 @@ const storePersister = new StorePersister(config.storePath);
 const imageStorage = new ImageStorage(config.imagePath);
 const store = storePersister.getStore();
 
-io.on('connection', function(socket){
-  console.log('client connnected');
-  socket.on('getAllTags', function(cb){
-    cb(store.getAllTags());
-  });
-  socket.on('findItems', function(options, cb){
-    console.log(options.tagIds);
-    cb(store.findItems(options.tagIds));
-  });
-  socket.on('upload', function(image, options, cb) {
-    console.log('upload called', image, options);
-    imageStorage.create(image).then(id => {
-      console.log('image created', id);
-      cb(id);
-    }).catch(() => cb(null));
-  });
-  socket.on('disconnect', function(){
-    console.log('client disconnnected');
-  });
+const app = express();
+app.use(bodyParser.json());
+
+app.get('/tags', bindApi('getTags', 'query'));
+app.post('/tags', bindApi('createTag', 'body'));
+app.post('/entries', bindApi('createEntry', 'body'));
+app.get('/entryData', bindApi('getEntryData', 'query'));
+//app.post('/entryData', ...);
+
+app.get('/entries', (req, res) => {
+  res.send(store.getEntries({
+    tags: JSON.parse(req.query.tags),
+    beforeDate: req.query.beforeDate,
+  }));
 });
 
+app.get('/entries/:id', (req, res) => {
+  const entry = store.getEntry(req.params);
+  if(entry)
+    res.send(entry);
+  else
+    res.sendStatus(404);
+});
 
-server.listen(config.port);
-console.log('System up, config:', config);
+app.post('/entries/:id', (req, res) => {
+  res.send(store.updateEntry({
+    id: req.params.id,
+    tags: req.body.tags, 
+    dateReceived: req.body.dateReceived, 
+  }));
+});
+
+app.delete('/entries/:id', (req, res) => {
+  const deleted = store.deleteEntry(req.params);
+  res.sendStatus(deleted ? 200 : 404);
+});
+
+function bindApi(apiFunctionName, inputField) {
+  const handler = store[apiFunctionName].bind(store);
+  return function(req, res) {
+    const data = req[inputField];
+    res.send(handler(data));
+  }
+}
+
+app.listen(config.port, function () {
+  console.log('System up, config:', config);
+});
