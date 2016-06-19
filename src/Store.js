@@ -80,9 +80,12 @@ class Store {
     return {entryData: _.values(this._data.entryData)};
   }
 
-  createEntryData(rawData) {
-    throw new Error('Not implemented.');
-    this._notifyChange();
+  createEntryData({previewFile, originalFile, originalType}) {
+    return this._idAndInsertObject('entryData', {
+      previewFile,
+      originalFile,
+      originalType,
+    });
   }
 
   _validateTagsParameter(tags) {

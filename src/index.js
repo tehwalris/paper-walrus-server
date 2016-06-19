@@ -2,12 +2,12 @@
 const express = require('express'),
   bodyParser = require('body-parser'),
   StorePersister = require('./StorePersister'),
-  ImageStorage = require('./ImageStorage'),
+  Uploader = require('./Uploader'),
   config = require('./config'); 
 
 const storePersister = new StorePersister(config.storePath);
-const imageStorage = new ImageStorage(config.imagePath);
 const store = storePersister.getStore();
+const upload = new Uploader(config.imagePath, config.allowedMimeTypes);
 
 const app = express();
 app.use(bodyParser.json());
@@ -16,7 +16,6 @@ app.get('/tags', bindApi('getTags', 'query'));
 app.post('/tags', bindApi('createTag', 'body'));
 app.post('/entries', bindApi('createEntry', 'body'));
 app.get('/entryData', bindApi('getEntryData', 'query'));
-//app.post('/entryData', ...);
 
 app.get('/entries', (req, res) => {
   res.send(store.getEntries({
@@ -44,6 +43,15 @@ app.post('/entries/:id', (req, res) => {
 app.delete('/entries/:id', (req, res) => {
   const deleted = store.deleteEntry(req.params);
   res.sendStatus(deleted ? 200 : 404);
+});
+
+app.post('/entryData', upload.any(), (req,res) => {
+  const result = req.files.map(file => store.createEntryData({
+    previewFile: file.filename,
+    originalFile: file.filename,
+    originalType: file.mimetype,
+  }));
+  res.send(result);
 });
 
 function bindApi(apiFunctionName, inputField) {
