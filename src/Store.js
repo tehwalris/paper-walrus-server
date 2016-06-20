@@ -1,6 +1,7 @@
 'use strict';
 const _ = require('lodash'),
   EventEmitter = require('events'),
+  moment = require('moment'),
   generateId = require('uuid').v4;
 
 class Store {
@@ -36,12 +37,12 @@ class Store {
     return this._data.entries[id];
   }
 
-  createEntry({dataId, tags, dateReceived}) {
+  createEntry({dataId, tags, dateReceived: dateReceivedRaw}) {
     const entryData = this._data.entryData[dataId];
     if(!entryData)
       throw new Error(`EntryData "${dataId}" does not exist.`);
-    this._validateDateReceivedParameter(dateReceived);
     this._validateTagsParameter(tags);
+    const dateReceived = this._normalizeDateString(dateReceivedRaw);
     delete this._data.entryData[dataId];
     return this._idAndInsertObject('entries', {
       data: entryData,
@@ -59,8 +60,7 @@ class Store {
       entry.tags = tags;
     }
     if(dateReceived) {
-      this._validateDateReceivedParameter(dateReceived);
-      entry.dateReceived = dateReceived;
+      entry.dateReceived = this._normalizeDateString(dateReceived);
     }
     this._data.entries[id] = entry;
     this._notifyChange();
@@ -95,9 +95,11 @@ class Store {
       throw new Error('Some referenced tags do not exist.');
   }
 
-  _validateDateReceivedParameter(dateReceived) {
-    if(!dateReceived) //TODO better check
-      throw new Error('Parameter dateReceived is required.');
+  _normalizeDateString(dateString) {
+    const date = moment.utc(dateString, moment.ISO_8601, true);
+    if(!date.isValid())
+      throw new Error(`Invalid date "${dateString}".`);
+    return date.format();
   }
 
   _idAndInsertObject(section, object) {
