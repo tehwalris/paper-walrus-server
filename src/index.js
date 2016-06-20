@@ -52,7 +52,7 @@ app.post('/entryData', upload.any(), (req,res) => {
     originalFile: file.filename,
     originalType: file.mimetype,
   }));
-  res.send(result);
+  res.send({data: result});
 });
 
 function bindApi(apiFunctionName, inputField) {
