@@ -13,4 +13,9 @@ module.exports = {
   port: 3000,
   allowedMimeTypes: ['image/jpeg', 'image/png'],
   contentCacheMaxAge: 2e9, //a few weeks in ms
+  previewSize: {
+    width: 200,
+    height: 200,
+  },
+  previewExtension: 'jpg',
 };
