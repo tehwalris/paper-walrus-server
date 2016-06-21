@@ -68,9 +68,12 @@ class Store {
   }
 
   deleteEntry({id}) {
-    if(this._data.entries[id]) {
-      delete this._data.entries[id];
+    const entry = this._data.entries[id];
+    delete this._data.entries[id];
+    if(entry) {
       this._notifyChange();
+      this._notifyFileUnused(entry.data.originalFile);
+      this._notifyFileUnused(entry.data.previewFile);
       return true;
     }
     return false;
@@ -118,6 +121,10 @@ class Store {
 
   _notifyChange() {
     this._eventEmitter.emit('change', this._data);
+  }
+
+  _notifyFileUnused(filename) {
+    this._eventEmitter.emit('fileUnused', filename);
   }
 }
 

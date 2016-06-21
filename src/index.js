@@ -1,6 +1,8 @@
 'use strict';
 const express = require('express'),
   bodyParser = require('body-parser'),
+  fs = require('fs'),
+  path = require('path'),
   StorePersister = require('./StorePersister'),
   Uploader = require('./Uploader'),
   config = require('./config'); 
@@ -8,6 +10,10 @@ const express = require('express'),
 const storePersister = new StorePersister(config.storePath);
 const store = storePersister.getStore();
 const upload = new Uploader(config.imagePath, config.allowedMimeTypes);
+
+store.on('fileUnused', (filename) => {
+  fs.unlink(path.join(config.imagePath, filename), () => {});
+});
 
 const app = express();
 app.use(bodyParser.json());
