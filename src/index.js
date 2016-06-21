@@ -11,7 +11,7 @@ const upload = new Uploader(config.imagePath, config.allowedMimeTypes);
 
 const app = express();
 app.use(bodyParser.json());
-app.use('/content', express.static(config.imagePath));
+app.use('/content', express.static(config.imagePath, {maxage: config.contentCacheMaxAge}));
 
 app.get('/tags', bindApi('getTags', 'query'));
 app.post('/tags', bindApi('createTag', 'body'));
