@@ -11,7 +11,13 @@ module.exports = class PreviewGenerator {
     this._previewSize = previewSize;
   }
 
-  generate(originalPath) {
+  generate(originalPath, originalType) {
+    if (originalType.split('/')[0].toLowerCase() === 'image')
+      return this._generateImagePreview(original);
+    return Promise.resolve(null);
+  }
+
+  _generateImagePreview(originalPath) {
     const previewFilename = `${uuid()}.${this._extension}`;
     const previewPath = path.join(this._destination, previewFilename);
     return new Promise((resolve, reject) => {

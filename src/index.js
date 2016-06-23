@@ -56,7 +56,7 @@ app.delete('/entries/:id', (req, res) => {
 
 app.post('/entryData', upload.any(), (req, res, next) => {
   Promise.all(req.files.map(file => {
-    return previewGenerator.generate(file.path);
+    return previewGenerator.generate(file.path, file.mimetype);
   })).then(previews => {
     const result = req.files.map((file, i) => store.createEntryData({
       previewFile: previews[i],
