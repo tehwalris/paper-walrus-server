@@ -124,7 +124,8 @@ class Store {
   }
 
   _notifyFileUnused(filename) {
-    this._eventEmitter.emit('fileUnused', filename);
+    if(filename)
+      this._eventEmitter.emit('fileUnused', filename);
   }
 }
 
