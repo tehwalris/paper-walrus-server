@@ -13,7 +13,7 @@ module.exports = class PreviewGenerator {
 
   generate(originalPath, originalType) {
     if (originalType.split('/')[0].toLowerCase() === 'image')
-      return this._generateImagePreview(original);
+      return this._generateImagePreview(originalPath);
     return Promise.resolve(null);
   }
 
