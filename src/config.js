@@ -18,4 +18,5 @@ module.exports = {
     height: 200,
   },
   previewExtension: 'jpg',
+  sessionDuration: '7 days',
 };

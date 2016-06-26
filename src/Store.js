@@ -2,7 +2,8 @@
 const _ = require('lodash'),
   EventEmitter = require('events'),
   moment = require('moment'),
-  generateId = require('uuid').v4;
+  generateId = require('uuid').v4,
+  isValidEmail = require('email-validator').validate;
 
 class Store {
   constructor(data) {
@@ -10,66 +11,101 @@ class Store {
     this._configureEventEmitter();
   }
 
-  getTags() {
-    return {tags: _.values(this._data.tags)};
+  createUser({email, password}) {
+    if(!isValidEmail(email))
+      throw new Error(`Invalid email "${email}"`);
+    this._validatePassword(password);
+    const existingUser = _.find(this._data.userSections, section => section.meta.email === email);
+    if(existingUser)
+      throw new Error('A user with this email already exists.');
+    const userSection = _.defaults({
+      meta: {
+        email,
+        passwordHash: this._hashPassword(password),
+        id: generateId(),
+      },
+    }, defaultUserSection);
+    this._data.userSections[userSection.meta.id] = userSection;
   }
 
-  createTag({type, name}) {
+  authenticateUser({email, password}) {
+    const userSection = _.find(this._data.userSections, section => section.meta.email === email);
+    if(!userSection)
+      throw new Error(`User with email "${email}" does not exist.`);
+    if(!this._passwordMatches(userSection.meta.passwordHash, password))
+      throw new Error('Password is incorrect.');
+    return {
+      userId: userSection.meta.id,
+    };
+  }
+
+  getTags({}, token) {
+    const userSection = this._getUserSectionOrThrow(token);
+    return {tags: _.values(userSection.data.tags)};
+  }
+
+  createTag({type, name}, token) {
+    const userSection = this._getUserSectionOrThrow(token);
     if(!['subject', 'custom'].includes(type))
       throw new Error(`Invalid type "${type}".`);
     if(!_.isString(name))
       throw new Error(`Parameter name must be a string.`);
-    return this._idAndInsertObject('tags', {type, name});
+    return this._idAndInsertObject(userSection, 'tags', {type, name});
   }
 
-  getEntries({tags, beforeDate}) {
+  getEntries({tags, beforeDate}, token) {
+    const userSection = this._getUserSectionOrThrow(token);
     if(beforeDate)
       throw new Error('Parameter beforeDate is not implemented.');
-    this._validateTagsParameter(tags);
-    const entries = _.filter(this._data.entries, entry => {
+    this._validateTagsParameter(tags, userSection);
+    const entries = _.filter(userSection.data.entries, entry => {
       const entryHasTag = tag => _.includes(entry.tags, tag);
       return _.every(tags, entryHasTag);
     });
     return {entries};
   }
 
-  getEntry({id}) {
-    return this._data.entries[id];
+  getEntry({id}, token) {
+    const userSection = this._getUserSectionOrThrow(token);
+    return userSection.data.entries[id];
   }
 
-  createEntry({dataId, tags, dateReceived: dateReceivedRaw}) {
-    const entryData = this._data.entryData[dataId];
+  createEntry({dataId, tags, dateReceived: dateReceivedRaw}, token) {
+    const userSection = this._getUserSectionOrThrow(token);
+    const entryData = userSection.data.entryData[dataId];
     if(!entryData)
       throw new Error(`EntryData "${dataId}" does not exist.`);
-    this._validateTagsParameter(tags);
+    this._validateTagsParameter(tags, userSection);
     const dateReceived = this._normalizeDateString(dateReceivedRaw);
-    delete this._data.entryData[dataId];
-    return this._idAndInsertObject('entries', {
+    delete userSection.data.entryData[dataId];
+    return this._idAndInsertObject(userSection, 'entries', {
       data: entryData,
       dateReceived,
       tags,
     });
   }
 
-  updateEntry({id, tags, dateReceived}) {
-    const entry = _.clone(this._data.entries[id]);
+  updateEntry({id, tags, dateReceived}, token) {
+    const userSection = this._getUserSectionOrThrow(token);
+    const entry = _.clone(userSection.data.entries[id]);
     if(!entry)
       throw new Error(`Entry "${id}" does not exist.`);
     if(tags) {
-      this._validateTagsParameter(tags);
+      this._validateTagsParameter(tags, userSection);
       entry.tags = tags;
     }
     if(dateReceived) {
       entry.dateReceived = this._normalizeDateString(dateReceived);
     }
-    this._data.entries[id] = entry;
+    userSection.data.entries[id] = entry;
     this._notifyChange();
     return entry;
   }
 
-  deleteEntry({id}) {
-    const entry = this._data.entries[id];
-    delete this._data.entries[id];
+  deleteEntry({id}, token) {
+    const userSection = this._getUserSectionOrThrow(token);
+    const entry = userSection.data.entries[id];
+    delete userSection.data.entries[id];
     if(entry) {
       this._notifyChange();
       this._notifyFileUnused(entry.data.originalFile);
@@ -79,23 +115,38 @@ class Store {
     return false;
   }
 
-  getEntryData() {
-    return {entryData: _.values(this._data.entryData)};
+  getEntryData({}, token) {
+    const userSection = this._getUserSectionOrThrow(token);
+    return {entryData: _.values(userSection.data.entryData)};
   }
 
-  createEntryData({previewFile, originalFile, originalType}) {
-    return this._idAndInsertObject('entryData', {
+  createEntryData({previewFile, originalFile, originalType}, token) {
+    const userSection = this._getUserSectionOrThrow(token);
+    return this._idAndInsertObject(userSection, 'entryData', {
       previewFile,
       originalFile,
       originalType,
     });
   }
 
-  _validateTagsParameter(tags) {
+  _validateTagsParameter(tags, userSection) {
     if(!_.isArray(tags) || !_.every(tags, _.isString))
       throw new Error('Parameter tags must be an array of tag ids');
-    if(!_.every(tags, tagId => !!this._data.tags[tagId]))
+    if(!_.every(tags, tagId => !!userSection.data.tags[tagId]))
       throw new Error('Some referenced tags do not exist.');
+  }
+
+  _validatePassword(password) {
+    if(!_.isString(password) || password.length < 6)
+      throw new Error('Invalid password.');
+  }
+
+  _hashPassword(password) {
+    return password;
+  }
+
+  _passwordMatches(hash, input) {
+    return hash === input;
   }
 
   _normalizeDateString(dateString) {
@@ -105,11 +156,18 @@ class Store {
     return date.format();
   }
 
-  _idAndInsertObject(section, object) {
+  _idAndInsertObject(userSection, type, object) {
     object.id = generateId();
-    this._data[section][object.id] = object;
+    userSection.data[type][object.id] = object;
     this._notifyChange();
     return object;
+  }
+
+  _getUserSectionOrThrow({userId}) {
+    const userSection = this._data.userSections[userId];
+    if(!userSection)
+      throw new Error('User doesn\'t exist.');
+    return userSection;
   }
 
   _configureEventEmitter() {
@@ -130,9 +188,15 @@ class Store {
 }
 
 Store.defaultStore = {
-  tags: {},
-  entries: {},
-  entryData: {},
+  userSections: {},
+}
+
+const defaultUserSection = {
+  data: {
+    tags: {},
+    entries: {},
+    entryData: {},
+  },
 }
 
 module.exports = Store;
