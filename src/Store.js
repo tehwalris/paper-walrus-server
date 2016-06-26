@@ -2,6 +2,7 @@
 const _ = require('lodash'),
   EventEmitter = require('events'),
   moment = require('moment'),
+  bcrypt =  require('bcrypt'),
   generateId = require('uuid').v4,
   isValidEmail = require('email-validator').validate;
 
@@ -13,30 +14,33 @@ class Store {
 
   createUser({email, password}) {
     if(!isValidEmail(email))
-      throw new Error(`Invalid email "${email}"`);
+      return Promise.reject(Error(`Invalid email "${email}"`));
     this._validatePassword(password);
     const existingUser = _.find(this._data.userSections, section => section.meta.email === email);
     if(existingUser)
-      throw new Error('A user with this email already exists.');
-    const userSection = _.defaults({
-      meta: {
-        email,
-        passwordHash: this._hashPassword(password),
-        id: generateId(),
-      },
-    }, defaultUserSection);
-    this._data.userSections[userSection.meta.id] = userSection;
+      return Promise.reject(Error('A user with this email already exists.'));
+    return this._hashPassword(password).then(passwordHash => {
+      const userSection = _.defaults({
+        meta: {
+          email,
+          passwordHash,
+          id: generateId(),
+        },
+      }, defaultUserSection);
+      this._data.userSections[userSection.meta.id] = userSection;
+      this._notifyChange();
+    });
   }
 
   authenticateUser({email, password}) {
     const userSection = _.find(this._data.userSections, section => section.meta.email === email);
     if(!userSection)
-      throw new Error(`User with email "${email}" does not exist.`);
-    if(!this._passwordMatches(userSection.meta.passwordHash, password))
-      throw new Error('Password is incorrect.');
-    return {
-      userId: userSection.meta.id,
-    };
+      return Promise.reject(Error(`User with email "${email}" does not exist.`));
+    return this._passwordMatches(userSection.meta.passwordHash, password).then(passwordMatches => {
+      if(!passwordMatches)
+        return Promise.reject(Error('Password is incorrect.'));
+      return {userId: userSection.meta.id};
+    });
   }
 
   getTags({}, token) {
@@ -137,16 +141,26 @@ class Store {
   }
 
   _validatePassword(password) {
-    if(!_.isString(password) || password.length < 6)
+    if(!_.isString(password) || password.length < 6 || password.length > 70)
       throw new Error('Invalid password.');
   }
 
   _hashPassword(password) {
-    return password;
+    return new Promise((resolve, reject) => {
+      bcrypt.hash(password, 10, (err, hash) => {
+        if(err) reject(err);
+        else resolve(hash);
+      });
+    });
   }
 
   _passwordMatches(hash, input) {
-    return hash === input;
+    return new Promise((resolve, reject) => {
+      bcrypt.compare(input, hash, (err, result) => {
+        if(err) reject(err);
+        else resolve(result);
+      });
+    });
   }
 
   _normalizeDateString(dateString) {

@@ -26,16 +26,18 @@ app.use('/content', express.static(config.imagePath, {maxage: config.contentCach
 const jwtSecret = uuid();
 
 app.post('/authenticate', (req, res) => {
-  try {
-    const decodedToken = store.authenticateUser(req.body);
-    const token = jwt.sign(decodedToken, jwtSecret, {
+  store.authenticateUser(req.body).then(decodedToken => new Promise((resolve, reject) => {
+    jwt.sign(decodedToken, jwtSecret, {
       expiresIn: config.sessionDuration,
+    }, (err, token) => {
+      if(err) reject(err);
+      else resolve(token);
     });
-    res.send({token});
-  } catch (e) {
-    console.log(e);
-    res.status(401).send('Authentication failed.');
-  }
+  }))
+  .then(token => res.send({token}))
+  .catch(e => {
+    res.status(401).send('Authentication failed.')
+  });
 });
 
 const protectedRoutes = express.Router();
@@ -45,7 +47,6 @@ protectedRoutes.use(function(req, res, next) {
   if(token) {
     jwt.verify(token, jwtSecret, function(err, decoded) {
       if(err) {
-        console.log(err);
         res.status(401).send('Unauthorized token.');
       } else {
         req.token = decoded;
