@@ -26,7 +26,8 @@ app.use('/content', express.static(config.imagePath, {maxage: config.contentCach
 const jwtSecret = uuid();
 
 app.post('/authenticate', (req, res) => {
-  store.authenticateUser(req.body).then(decodedToken => new Promise((resolve, reject) => {
+  Promise.reject() // TODO
+    .then(decodedToken => new Promise((resolve, reject) => {
     jwt.sign(decodedToken, jwtSecret, {
       expiresIn: config.sessionDuration,
     }, (err, token) => {
@@ -57,60 +58,6 @@ protectedRoutes.use(function(req, res, next) {
     res.status(401).send('No token provided.');
   }
 });
-
-protectedRoutes.get('/tags', bindApi('getTags', 'query'));
-protectedRoutes.post('/tags', bindApi('createTag', 'body'));
-protectedRoutes.post('/entries', bindApi('createEntry', 'body'));
-protectedRoutes.get('/entryData', bindApi('getEntryData', 'query'));
-
-protectedRoutes.get('/entries', (req, res) => {
-  res.send(store.getEntries({
-    tags: JSON.parse(req.query.tags),
-    beforeDate: req.query.beforeDate,
-  }, req.token));
-});
-
-protectedRoutes.get('/entries/:id', (req, res) => {
-  const entry = store.getEntry(req.params, req.token);
-  if(entry)
-    res.send(entry);
-  else
-    res.sendStatus(404);
-});
-
-protectedRoutes.post('/entries/:id', (req, res) => {
-  res.send(store.updateEntry({
-    id: req.params.id,
-    tags: req.body.tags, 
-    dateReceived: req.body.dateReceived, 
-  }, req.token));
-});
-
-protectedRoutes.delete('/entries/:id', (req, res) => {
-  const deleted = store.deleteEntry(req.params, req.token);
-  res.sendStatus(deleted ? 200 : 404);
-});
-
-protectedRoutes.post('/entryData', upload.any(), (req, res, next) => {
-  Promise.all(req.files.map(file => {
-    return previewGenerator.generate(file.path, file.mimetype);
-  })).then(previews => {
-    const result = req.files.map((file, i) => store.createEntryData({
-      previewFile: previews[i],
-      originalFile: file.filename,
-      originalType: file.mimetype,
-    }, req.token));
-    res.send({data: result});
-  }).catch(err => next(err));
-});
-
-function bindApi(apiFunctionName, inputField) {
-  const handler = store[apiFunctionName].bind(store);
-  return function(req, res) {
-    const data = req[inputField];
-    res.send(handler(data, req.token));
-  }
-}
 
 app.use(protectedRoutes);
 
