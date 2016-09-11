@@ -5,6 +5,8 @@ const express = require('express'),
   path = require('path'),
   uuid = require('uuid').v4,
   jwt = require('jsonwebtoken'),
+  graphqlHttp = require('express-graphql'),
+  storeSchema = require('./storeSchema'),
   StorePersister = require('./StorePersister'),
   Uploader = require('./Uploader'),
   PreviewGenerator = require('./PreviewGenerator'),
@@ -22,6 +24,11 @@ store.on('fileUnused', (filename) => {
 const app = express();
 app.use(bodyParser.json());
 app.use('/content', express.static(config.imagePath, {maxage: config.contentCacheMaxAge}));
+
+app.use('/graphql', graphqlHttp({
+  schema: storeSchema,
+  graphiql: true,
+}));
 
 const jwtSecret = uuid();
 
