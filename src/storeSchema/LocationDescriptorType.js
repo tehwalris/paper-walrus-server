@@ -2,12 +2,9 @@
 const {GraphQLString, GraphQLObjectType, GraphQLNonNull} = require('graphql');
 
 module.exports = new GraphQLObjectType({
-  name: 'SourceFile',
+  name: 'LocationDescriptor',
   fields: {
-    filename: {
-      type: new GraphQLNonNull(GraphQLString),
-    },
-    mimeType: {
+    description: {
       type: new GraphQLNonNull(GraphQLString),
     },
   },
