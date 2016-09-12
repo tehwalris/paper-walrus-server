@@ -1,7 +1,7 @@
 'use strict';
 const {GraphQLString, GraphQLObjectType} = require('graphql'),
   SourceFileType = require('./SourceFileType'),
-  DocumentType = require('./DocumentType');
+  WorkSetType = require('./WorkSetType');
 
 module.exports = new GraphQLObjectType({
   name: 'RootQueryType',
@@ -10,8 +10,8 @@ module.exports = new GraphQLObjectType({
       type: SourceFileType,
       resolve: () => ({filename: 'fakeFilename', mimeType: 'fakeMimetype'}),
     },
-    document: {
-      type: DocumentType,
+    workSet: {
+      type: WorkSetType,
     },
   },
 });
