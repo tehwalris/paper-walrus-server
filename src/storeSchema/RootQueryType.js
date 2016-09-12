@@ -1,5 +1,5 @@
 'use strict';
-const {GraphQLString, GraphQLObjectType} = require('graphql'),
+const {GraphQLString, GraphQLObjectType, GraphQLNonNull} = require('graphql'),
   SourceFileType = require('./SourceFileType'),
   WorkSetType = require('./WorkSetType'),
   DocumentType = require('./DocumentType'),
@@ -10,17 +10,17 @@ module.exports = new GraphQLObjectType({
   fields: {
     sourceFile: {
       type: SourceFileType,
-      args: {id: {type: GraphQLString}},
+      args: {id: {type: new GraphQLNonNull(GraphQLString)}},
       resolve: (parent, args) => fakeStore.sourceFiles[args.id],
     },
     document: {
       type: DocumentType,
-      args: {id: {type: GraphQLString}},
+      args: {id: {type: new GraphQLNonNull(GraphQLString)}},
       resolve: (parent, args) => fakeStore.documents[args.id],
     },
     workSet: {
       type: WorkSetType,
-      args: {id: {type: GraphQLString}},
+      args: {id: {type: new GraphQLNonNull(GraphQLString)}},
       resolve: (parent, args) => fakeStore.workSets[args.id],
     },
   },
