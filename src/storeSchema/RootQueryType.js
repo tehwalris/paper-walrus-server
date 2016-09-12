@@ -1,5 +1,6 @@
 'use strict';
-const {GraphQLString, GraphQLObjectType, GraphQLNonNull} = require('graphql'),
+const {GraphQLString, GraphQLObjectType, GraphQLNonNull, GraphQLList} = require('graphql'),
+  _ = require('lodash'),
   SourceFileType = require('./SourceFileType'),
   WorkSetType = require('./WorkSetType'),
   DocumentType = require('./DocumentType'),
@@ -22,6 +23,11 @@ module.exports = new GraphQLObjectType({
       type: WorkSetType,
       args: {id: {type: new GraphQLNonNull(GraphQLString)}},
       resolve: (parent, args) => fakeStore.workSets[args.id],
+    },
+    /* real queries start here */ //TODO
+    documents: {
+      type: new GraphQLList(DocumentType),
+      resolve: () => _.values(fakeStore.documents),
     },
   },
 });
