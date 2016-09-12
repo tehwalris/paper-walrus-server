@@ -23,7 +23,6 @@ module.exports = {
     },
     '2': {
       id: '2',
-      name: 'fakeDocument2',
       parts: [],
       visibility: 'anonymous',
     },
@@ -38,6 +37,13 @@ module.exports = {
           pointB: {documentId: '2'},
         },
       ],
+    },
+  },
+  users: {
+    '1': {
+      id: '1',
+      email: 'philippevoinov@gmail.com',
+      passwordHash: '$2a$10$CKBTZXvAlE9meJxClyATk.sb.KcFBwFw3ormBvdO/eCLV5Hs6PWX.',
     },
   },
 };

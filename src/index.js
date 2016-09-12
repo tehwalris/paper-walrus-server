@@ -25,16 +25,10 @@ const app = express();
 app.use(bodyParser.json());
 app.use('/content', express.static(config.imagePath, {maxage: config.contentCacheMaxAge}));
 
-app.use('/graphql', graphqlHttp({
-  schema: storeSchema,
-  graphiql: true,
-}));
-
 const jwtSecret = uuid();
 
 app.post('/authenticate', (req, res) => {
-  Promise.reject() // TODO
-    .then(decodedToken => new Promise((resolve, reject) => {
+    store.authenticateUser(req.body).then(decodedToken => new Promise((resolve, reject) => {
     jwt.sign(decodedToken, jwtSecret, {
       expiresIn: config.sessionDuration,
     }, (err, token) => {
@@ -65,6 +59,11 @@ protectedRoutes.use(function(req, res, next) {
     res.status(401).send('No token provided.');
   }
 });
+
+protectedRoutes.use('/graphql', graphqlHttp({
+  schema: storeSchema,
+  graphiql: true,
+}));
 
 app.use(protectedRoutes);
 
