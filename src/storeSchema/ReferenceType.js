@@ -1,5 +1,5 @@
 'use strict';
-const {GraphQLObjectType, GraphQLNonNull} = require('graphql'),
+const {GraphQLObjectType, GraphQLNonNull, GraphQLString} = require('graphql'),
   ReferencePointType = require('./ReferencePointType');
 
 module.exports = new GraphQLObjectType({

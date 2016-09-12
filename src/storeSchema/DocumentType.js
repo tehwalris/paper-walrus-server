@@ -5,6 +5,9 @@ const {GraphQLString, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLEnu
 module.exports = new GraphQLObjectType({
   name: 'Document',
   fields: {
+    id: {
+      type: new GraphQLNonNull(GraphQLString),
+    },
     name: {
       type: GraphQLString,
     },
