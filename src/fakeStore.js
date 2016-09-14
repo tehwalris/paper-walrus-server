@@ -10,6 +10,11 @@ module.exports = {
       filename: 'fakeFilename2',
       mimeType: 'fakeMimetype2',
     },
+    '3': {
+      id: '3',
+      filename: 'fakeFilename3',
+      mimeType: 'fakeMimetype3',
+    },
   },
   documents: {
     '1': {

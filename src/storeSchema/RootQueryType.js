@@ -1,5 +1,5 @@
 'use strict';
-const {GraphQLString, GraphQLObjectType, GraphQLNonNull, GraphQLList} = require('graphql'),
+const {GraphQLString, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLBoolean} = require('graphql'),
   _ = require('lodash'),
   SourceFileType = require('./SourceFileType'),
   WorkSetType = require('./WorkSetType'),
@@ -31,7 +31,17 @@ module.exports = new GraphQLObjectType({
     },
     sourceFiles: {
       type: new GraphQLList(SourceFileType),
-      resolve: () => _.values(fakeStore.sourceFiles),
+      args: {onlyUnassigned: {type: GraphQLBoolean}},
+      resolve: (parent, args) => {
+        const onlyUnassigned = args.onlyUnassigned || false;
+        const sourceFiles = _.values(fakeStore.sourceFiles);
+        if(onlyUnassigned) {
+          const assignedSourceFileIds =
+            _.chain(fakeStore.documents).flatMap('parts').map('sourceFileId').uniq().value();
+          return sourceFiles.filter(({id}) => !assignedSourceFileIds.includes(id));
+        }
+        return sourceFiles;
+      },
     },
   },
 });
