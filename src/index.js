@@ -6,6 +6,7 @@ const express = require('express'),
   uuid = require('uuid').v4,
   jwt = require('jsonwebtoken'),
   graphqlHttp = require('express-graphql'),
+  configureDatabase = require('./configureDatabase'),
   storeSchema = require('./storeSchema'),
   StorePersister = require('./StorePersister'),
   Uploader = require('./Uploader'),
@@ -67,6 +68,11 @@ protectedRoutes.use('/graphql', graphqlHttp({
 
 app.use(protectedRoutes);
 
-app.listen(config.port, function () {
-  console.log('System up, config:', config);
+configureDatabase(config.knex).catch(e => {
+  console.error('Failed to configure database.', e);
+  process.exit(1);
+}).then(knex => {
+  app.listen(config.port, function () {
+    console.log('System up, config:', config);
+  });
 });

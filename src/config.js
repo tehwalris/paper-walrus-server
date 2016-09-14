@@ -19,4 +19,13 @@ module.exports = {
   },
   previewExtension: 'jpg',
   sessionDuration: '7 days',
+  knex: {
+    client: 'pg',
+    connection: {
+      host : '172.17.0.2',
+      user : 'postgres',
+      password : 'walrus',
+      database : 'paper-walrus'
+    }
+  },
 };
