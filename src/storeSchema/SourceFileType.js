@@ -7,6 +7,10 @@ module.exports = new GraphQLObjectType({
     id: {
       type: new GraphQLNonNull(GraphQLString),
     },
+    url: {
+      type: new GraphQLNonNull(GraphQLString),
+      resolve: sourceFile => `/content/${sourceFile.filename}`
+    },
     filename: {
       type: new GraphQLNonNull(GraphQLString),
     },
