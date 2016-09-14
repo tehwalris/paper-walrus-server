@@ -13,6 +13,11 @@ module.exports = new GraphQLObjectType({
     },
     parts: {
       type: new GraphQLNonNull(new GraphQLList(DocumentPartType)),
+      resolve: (document, args, {knex}) => {
+        return knex.select(
+          'documentParts.sourceFileId'
+        ).from('documentParts').where('documentParts.documentId', document.id);
+      },
     },
     visibility: {
       type: new GraphQLNonNull(new GraphQLEnumType({

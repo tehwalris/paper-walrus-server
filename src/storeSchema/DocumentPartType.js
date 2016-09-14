@@ -9,7 +9,14 @@ module.exports = new GraphQLObjectType({
   fields: {
     sourceFile: {
       type: new GraphQLNonNull(SourceFileType),
-      resolve: documentPart => fakeStore.sourceFiles[documentPart.sourceFileId],
+      resolve: (documentPart, args, {knex}) => {
+        return knex.select(
+          'sourceFiles.id',
+          'sourceFiles.filename',
+          'sourceFiles.mimeType'
+        ).from('sourceFiles').where('sourceFiles.id', documentPart.sourceFileId)
+          .then(rows => rows[0]);
+      },
     },
     location: {
       type: LocationDescriptorType,

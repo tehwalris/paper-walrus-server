@@ -61,17 +61,18 @@ protectedRoutes.use(function(req, res, next) {
   }
 });
 
-protectedRoutes.use('/graphql', graphqlHttp({
-  schema: storeSchema,
-  graphiql: true,
-}));
-
-app.use(protectedRoutes);
-
 configureDatabase(config.knex).catch(e => {
   console.error('Failed to configure database.', e);
   process.exit(1);
 }).then(knex => {
+  protectedRoutes.use('/graphql', graphqlHttp({
+    schema: storeSchema,
+    graphiql: true,
+    context: {knex},
+  }));
+
+  app.use(protectedRoutes);
+
   app.listen(config.port, function () {
     console.log('System up, config:', config);
   });

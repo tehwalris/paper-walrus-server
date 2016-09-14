@@ -9,16 +9,6 @@ const {GraphQLString, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLBoo
 module.exports = new GraphQLObjectType({
   name: 'RootQueryType',
   fields: {
-    sourceFile: {
-      type: SourceFileType,
-      args: {id: {type: new GraphQLNonNull(GraphQLString)}},
-      resolve: (parent, args) => fakeStore.sourceFiles[args.id],
-    },
-    document: {
-      type: DocumentType,
-      args: {id: {type: new GraphQLNonNull(GraphQLString)}},
-      resolve: (parent, args) => fakeStore.documents[args.id],
-    },
     workSet: {
       type: WorkSetType,
       args: {id: {type: new GraphQLNonNull(GraphQLString)}},
@@ -27,20 +17,40 @@ module.exports = new GraphQLObjectType({
     /* real queries start here */ //TODO
     documents: {
       type: new GraphQLList(DocumentType),
-      resolve: () => _.values(fakeStore.documents),
+      resolve: (parent, args, {knex}) => {
+        return knex.select(
+          'documents.id',
+          'documents.name',
+          'documents.visibility'
+        ).from('documents');
+      },
+    },
+    document: {
+      type: DocumentType,
+      args: {id: {type: new GraphQLNonNull(GraphQLString)}},
+      resolve: (parent, args, {knex}) => {
+        return knex.select(
+          'documents.id',
+          'documents.name',
+          'documents.visibility'
+        ).from('documents').where('id', args.id).then(rows => rows[0]);
+      },
     },
     sourceFiles: {
       type: new GraphQLList(SourceFileType),
       args: {onlyUnassigned: {type: GraphQLBoolean}},
-      resolve: (parent, args) => {
-        const onlyUnassigned = args.onlyUnassigned || false;
-        const sourceFiles = _.values(fakeStore.sourceFiles);
-        if(onlyUnassigned) {
-          const assignedSourceFileIds =
-            _.chain(fakeStore.documents).flatMap('parts').map('sourceFileId').uniq().value();
-          return sourceFiles.filter(({id}) => !assignedSourceFileIds.includes(id));
+      resolve: (parent, args, {knex}) => {
+        const baseQuery = knex.select(
+          'sourceFiles.id',
+          'sourceFiles.filename',
+          'sourceFiles.mimeType'
+        ).from('sourceFiles');
+        if(args.onlyUnassigned) {
+          return baseQuery
+            .leftJoin('documentParts', 'sourceFiles.id', 'documentParts.sourceFileId')
+            .whereNull('documentParts.id');
         }
-        return sourceFiles;
+        return baseQuery;
       },
     },
   },
