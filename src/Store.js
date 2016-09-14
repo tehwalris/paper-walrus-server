@@ -30,7 +30,6 @@ class Store {
   }
 
   _passwordMatches(hash, input) {
-    console.log(hash, input);
     return new Promise((resolve, reject) => {
       bcrypt.compare(input, hash, (err, result) => {
         if(err) reject(err);

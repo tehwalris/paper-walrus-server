@@ -29,5 +29,9 @@ module.exports = new GraphQLObjectType({
       type: new GraphQLList(DocumentType),
       resolve: () => _.values(fakeStore.documents),
     },
+    sourceFiles: {
+      type: new GraphQLList(SourceFileType),
+      resolve: () => _.values(fakeStore.sourceFiles),
+    },
   },
 });

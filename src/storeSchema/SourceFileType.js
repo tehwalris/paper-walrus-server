@@ -11,6 +11,10 @@ module.exports = new GraphQLObjectType({
       type: new GraphQLNonNull(GraphQLString),
       resolve: sourceFile => `/content/${sourceFile.filename}`
     },
+    previewUrl: {
+      type: GraphQLString,
+      resolve: () => 'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcRaSMMInJm7RUGQzIovTrbwFkNzBaMXAPrwLv1iDEyRU7Dcph_I', //TODO
+    },
     filename: {
       type: new GraphQLNonNull(GraphQLString),
     },
