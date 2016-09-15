@@ -6,7 +6,9 @@ const express = require('express'),
   uuid = require('uuid').v4,
   jwt = require('jsonwebtoken'),
   graphqlHttp = require('express-graphql'),
+  configureImageStore = require('./configureImageStore'),
   configureDatabase = require('./configureDatabase'),
+  databaseHelpers = require('./databaseHelpers'),
   storeSchema = require('./storeSchema'),
   StorePersister = require('./StorePersister'),
   Uploader = require('./Uploader'),
@@ -61,19 +63,42 @@ protectedRoutes.use(function(req, res, next) {
   }
 });
 
-configureDatabase(config.knex).catch(e => {
-  console.error('Failed to configure database.', e);
-  process.exit(1);
-}).then(knex => {
-  protectedRoutes.use('/graphql', graphqlHttp({
-    schema: storeSchema,
-    graphiql: true,
-    context: {knex},
-  }));
+configureDatabase(config.knex)
+  .catch(e => {
+    console.error('Startup failed.', e);
+    process.exit(1);
+  })
+  .then(knex => {
+    protectedRoutes.use('/graphql', graphqlHttp({
+      schema: storeSchema,
+      graphiql: true,
+      context: {knex},
+    }));
 
-  app.use(protectedRoutes);
+    protectedRoutes.post('/uploadSourceFiles', upload.any(), (req, res, next) => {
+      knex.transaction(trx => {
+        Promise.all(req.files.map(file => databaseHelpers.createSourceFile({knex}, {
+          filename: file.filename,
+          mimeType: file.mimetype,
+        }).transacting(trx)))
+        .then(() => {
+          trx.commit();
+          res.sendStatus(200);
+        })
+        .catch(err => {
+          trx.rollback();
+          next(err);
+        });
+      });
+    });
 
-  app.listen(config.port, function () {
-    console.log('System up, config:', config);
+    app.use(protectedRoutes);
+
+    return knex;
+  })
+  .then(knex => configureImageStore(config, {knex}))
+  .then(() => {
+    app.listen(config.port, function () {
+      console.log('System up, config:', config);
+    });
   });
-});

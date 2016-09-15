@@ -4,11 +4,13 @@ const os = require('os'),
 
 const basePath = path.join(os.homedir(), '.paperWalrus')
 const imagePath = path.join(basePath, 'images');
+const orphanedImagePath = path.join(imagePath, 'orphaned');
 const storePath = path.join(basePath, 'store.json');
 
 module.exports = {
   basePath,
   imagePath,
+  orphanedImagePath,
   storePath,
   port: 3000,
   allowedMimeTypes: ['image/jpeg', 'image/png', 'application/pdf'],

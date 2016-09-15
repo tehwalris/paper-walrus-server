@@ -40,6 +40,10 @@ function getPartsOfDocument(context, documentId) {
   return getDocumentParts(context).where('documentParts.documentId', documentId);
 }
 
+function createSourceFile(context, sourceFile) {
+  return context.knex.insert(sourceFile).into('sourceFiles');
+}
+
 module.exports = {
   getDocuments,
   getDocumentById,
@@ -48,4 +52,5 @@ module.exports = {
   getSourceFileById,
   getDocumentParts,
   getPartsOfDocument,
+  createSourceFile,
 };
