@@ -1,5 +1,6 @@
 'use strict';
 const {GraphQLObjectType, GraphQLNonNull, GraphQLString} = require('graphql'),
+  databaseHelpers = require('../databaseHelpers'),
   SourceFileType = require('./SourceFileType'),
   LocationDescriptorType = require('./LocationDescriptorType'),
   fakeStore = require('../fakeStore');
@@ -9,13 +10,8 @@ module.exports = new GraphQLObjectType({
   fields: {
     sourceFile: {
       type: new GraphQLNonNull(SourceFileType),
-      resolve: (documentPart, args, {knex}) => {
-        return knex.select(
-          'sourceFiles.id',
-          'sourceFiles.filename',
-          'sourceFiles.mimeType'
-        ).from('sourceFiles').where('sourceFiles.id', documentPart.sourceFileId)
-          .then(rows => rows[0]);
+      resolve: (documentPart, args, context) => {
+        return databaseHelpers.getSourceFileById(context, documentPart.sourceFileId);
       },
     },
     location: {

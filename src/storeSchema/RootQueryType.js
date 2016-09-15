@@ -1,6 +1,7 @@
 'use strict';
 const {GraphQLString, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLBoolean} = require('graphql'),
   _ = require('lodash'),
+  databaseHelpers = require('../databaseHelpers'),
   SourceFileType = require('./SourceFileType'),
   WorkSetType = require('./WorkSetType'),
   DocumentType = require('./DocumentType'),
@@ -17,40 +18,24 @@ module.exports = new GraphQLObjectType({
     /* real queries start here */ //TODO
     documents: {
       type: new GraphQLList(DocumentType),
-      resolve: (parent, args, {knex}) => {
-        return knex.select(
-          'documents.id',
-          'documents.name',
-          'documents.visibility'
-        ).from('documents');
+      resolve: (parent, args, context) => {
+        return databaseHelpers.getDocuments(context);
       },
     },
     document: {
       type: DocumentType,
       args: {id: {type: new GraphQLNonNull(GraphQLString)}},
-      resolve: (parent, args, {knex}) => {
-        return knex.select(
-          'documents.id',
-          'documents.name',
-          'documents.visibility'
-        ).from('documents').where('id', args.id).then(rows => rows[0]);
+      resolve: (parent, args, context) => {
+        return databaseHelpers.getDocumentById(context, args.id);
       },
     },
     sourceFiles: {
       type: new GraphQLList(SourceFileType),
       args: {onlyUnassigned: {type: GraphQLBoolean}},
-      resolve: (parent, args, {knex}) => {
-        const baseQuery = knex.select(
-          'sourceFiles.id',
-          'sourceFiles.filename',
-          'sourceFiles.mimeType'
-        ).from('sourceFiles');
-        if(args.onlyUnassigned) {
-          return baseQuery
-            .leftJoin('documentParts', 'sourceFiles.id', 'documentParts.sourceFileId')
-            .whereNull('documentParts.id');
-        }
-        return baseQuery;
+      resolve: (parent, args, context) => {
+        if(args.onlyUnassigned)
+          return databaseHelpers.getUnassignedSourceFiles(context);
+        return databaseHelpers.getSourceFiles(context);
       },
     },
   },

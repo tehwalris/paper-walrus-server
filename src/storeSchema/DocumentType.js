@@ -1,5 +1,6 @@
 'use strict';
 const {GraphQLString, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLEnumType} = require('graphql'),
+  databaseHelpers = require('../databaseHelpers'),
   DocumentPartType = require('./DocumentPartType');
 
 module.exports = new GraphQLObjectType({
@@ -13,10 +14,8 @@ module.exports = new GraphQLObjectType({
     },
     parts: {
       type: new GraphQLNonNull(new GraphQLList(DocumentPartType)),
-      resolve: (document, args, {knex}) => {
-        return knex.select(
-          'documentParts.sourceFileId'
-        ).from('documentParts').where('documentParts.documentId', document.id);
+      resolve: (document, args, context) => {
+        return databaseHelpers.getPartsOfDocument(context, document.id);
       },
     },
     visibility: {
