@@ -49,6 +49,10 @@ function createDocument(context, document) {
   return context.knex.insert(document).into('documents');
 }
 
+function deleteDocument(context, documentId) {
+  return context.knex('documents').where('documents.id', documentId).del();
+}
+
 module.exports = {
   getDocuments,
   getDocumentById,
@@ -59,4 +63,5 @@ module.exports = {
   getPartsOfDocument,
   createSourceFile,
   createDocument,
+  deleteDocument,
 };

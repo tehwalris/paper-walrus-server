@@ -27,13 +27,25 @@ module.exports = new GraphQLObjectType({
       args: {input: {type: new GraphQLInputObjectType({
         name: 'RenameDocumentInput',
         fields: {
-          documentId: {type: new GraphQLNonNull(GraphQLString)},
+          id: {type: new GraphQLNonNull(GraphQLString)},
           name: {type: GraphQLString},
         },
       })}},
-      resolve: (parent, {input: {documentId: id, name}}, context) => {
+      resolve: (parent, {input: {id, name}}, context) => {
         return context.knex('documents').where('documents.id', id).update({name: name || null})
           .then(() => databaseHelpers.getDocumentById(context, id)); //TODO single query
+      },
+    },
+    deleteDocument: {
+      type: GraphQLString,
+      args: {input: {type: new GraphQLInputObjectType({
+        name: 'DeleteDocumentInput',
+        fields: {
+          id: {type: new GraphQLNonNull(GraphQLString)},
+        },
+      })}},
+      resolve: (parent, {input: {id, name}}, context) => {
+        return databaseHelpers.deleteDocument(context, id).then(() => id);
       },
     },
   },
