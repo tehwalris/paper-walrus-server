@@ -1,7 +1,8 @@
 'use strict';
-const {GraphQLString, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLEnumType} = require('graphql'),
+const {GraphQLString, GraphQLObjectType, GraphQLNonNull, GraphQLList} = require('graphql'),
   databaseHelpers = require('../databaseHelpers'),
-  DocumentPartType = require('./DocumentPartType');
+  DocumentPartType = require('./DocumentPartType'),
+  DocumentVisibilityLevel = require('./DocumentVisibilityLevel');
 
 module.exports = new GraphQLObjectType({
   name: 'Document',
@@ -19,13 +20,7 @@ module.exports = new GraphQLObjectType({
       },
     },
     visibility: {
-      type: new GraphQLNonNull(new GraphQLEnumType({
-        name: 'DocumentVisibilityLevel',
-        values: {
-          'anonymous': {},
-          'standalone': {},
-        }
-      })),
+      type: new GraphQLNonNull(DocumentVisibilityLevel),
     },
   },
 });

@@ -45,6 +45,10 @@ function createSourceFile(context, sourceFile) {
   return context.knex.insert(sourceFile).into('sourceFiles');
 }
 
+function createDocument(context, document) {
+  return context.knex.insert(document).into('documents');
+}
+
 module.exports = {
   getDocuments,
   getDocumentById,
@@ -54,4 +58,5 @@ module.exports = {
   getDocumentParts,
   getPartsOfDocument,
   createSourceFile,
+  createDocument,
 };
