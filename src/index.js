@@ -1,5 +1,6 @@
 'use strict';
-const express = require('express'),
+const _ = require('lodash'),
+  express = require('express'),
   bodyParser = require('body-parser'),
   fs = require('fs'),
   path = require('path'),
@@ -77,18 +78,30 @@ configureDatabase(config.knex)
 
     protectedRoutes.post('/uploadSourceFiles', upload.any(), (req, res, next) => {
       knex.transaction(trx => {
-        Promise.all(req.files.map(file => databaseHelpers.createSourceFile({knex}, {
-          filename: file.filename,
-          mimeType: file.mimetype,
-        }).transacting(trx)))
-        .then(() => {
-          trx.commit();
-          res.sendStatus(200);
-        })
-        .catch(err => {
-          trx.rollback();
-          next(err);
-        });
+        function generatePreviews(files) {
+          return Promise.all(files.map(file => previewGenerator.generate(file.path, file.mimetype)));
+        }
+
+        function createSourceFiles(previews, files) {
+          return Promise.all(_.zip(files, previews).map(([file, previewFilename]) => {
+            return databaseHelpers.createSourceFile({knex}, {
+              filename: file.filename,
+              mimeType: file.mimetype,
+              previewFilename,
+            }).transacting(trx);
+          }));
+        }
+
+        generatePreviews(req.files)
+          .then(previews => createSourceFiles(previews, req.files))
+          .then(() => {
+            trx.commit();
+            res.sendStatus(200);
+          })
+          .catch(err => {
+            trx.rollback();
+            next(err);
+          });
       });
     });
 

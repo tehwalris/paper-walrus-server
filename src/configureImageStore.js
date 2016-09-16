@@ -21,7 +21,13 @@ function moveAllFilesExcept(source, destination, exceptions) {
 }
 
 function getOwnedFilenames(context) {
-  return databaseHelpers.getSourceFiles(context).then(sourceFiles => _.map(sourceFiles, 'filename'));
+  return databaseHelpers.getSourceFiles(context)
+    .then(sourceFiles => 
+      _.chain(sourceFiles)
+        .flatMap(sourceFile => [sourceFile.filename, sourceFile.previewFilename])
+        .compact()
+        .value()
+    );
 }
 
 module.exports = function({imagePath, orphanedImagePath}, context) {

@@ -16,7 +16,8 @@ function getSourceFiles(context) {
   return context.knex.select(
     'sourceFiles.id',
     'sourceFiles.filename',
-    'sourceFiles.mimeType'
+    'sourceFiles.mimeType',
+    'sourceFiles.previewFilename'
   ).from('sourceFiles');
 }
 

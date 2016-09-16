@@ -1,5 +1,7 @@
 'use strict';
-const {GraphQLString, GraphQLObjectType, GraphQLNonNull} = require('graphql');
+const {GraphQLString, GraphQLObjectType, GraphQLNonNull} = require('graphql'),
+  path = require('path'),
+  {publicContentPath} = require('../config'); 
 
 module.exports = new GraphQLObjectType({
   name: 'SourceFile',
@@ -9,11 +11,13 @@ module.exports = new GraphQLObjectType({
     },
     url: {
       type: new GraphQLNonNull(GraphQLString),
-      resolve: sourceFile => `/content/${sourceFile.filename}`
+      resolve: ({filename}) => path.join(publicContentPath, filename),
     },
     previewUrl: {
       type: GraphQLString,
-      resolve: () => 'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcRaSMMInJm7RUGQzIovTrbwFkNzBaMXAPrwLv1iDEyRU7Dcph_I', //TODO
+      resolve: ({previewFilename}) => {
+        return previewFilename && path.join(publicContentPath, previewFilename);
+      },
     },
     filename: {
       type: new GraphQLNonNull(GraphQLString),
