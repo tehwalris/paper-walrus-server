@@ -1,14 +1,14 @@
 'use strict';
 const {GraphQLString, GraphQLObjectType, GraphQLNonNull} = require('graphql'),
+  {globalIdField} = require('graphql-relay'),
+  {nodeInterface} = require('./nodeDefinitions'),
   path = require('path'),
   {publicContentPath} = require('../config'); 
 
 module.exports = new GraphQLObjectType({
   name: 'SourceFile',
-  fields: {
-    id: {
-      type: new GraphQLNonNull(GraphQLString),
-    },
+  fields: () => ({
+    id: globalIdField('SourceFile'),
     url: {
       type: new GraphQLNonNull(GraphQLString),
       resolve: ({filename}) => path.join(publicContentPath, filename),
@@ -25,5 +25,6 @@ module.exports = new GraphQLObjectType({
     mimeType: {
       type: new GraphQLNonNull(GraphQLString),
     },
-  },
+  }),
+  interfaces: [nodeInterface],
 });

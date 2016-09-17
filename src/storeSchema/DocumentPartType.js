@@ -1,5 +1,7 @@
 'use strict';
 const {GraphQLObjectType, GraphQLNonNull, GraphQLString} = require('graphql'),
+  {globalIdField} = require('graphql-relay'),
+  {nodeInterface} = require('./nodeDefinitions'),
   databaseHelpers = require('../databaseHelpers'),
   SourceFileType = require('./SourceFileType'),
   LocationDescriptorType = require('./LocationDescriptorType');
@@ -7,9 +9,7 @@ const {GraphQLObjectType, GraphQLNonNull, GraphQLString} = require('graphql'),
 module.exports = new GraphQLObjectType({
   name: 'DocumentPart',
   fields: () => ({
-    id: {
-      type: new GraphQLNonNull(GraphQLString),
-    },
+    id: globalIdField('DocumentPart'),
     sourceFile: {
       type: new GraphQLNonNull(SourceFileType),
       resolve: (documentPart, args, context) => {
@@ -26,4 +26,5 @@ module.exports = new GraphQLObjectType({
       type: LocationDescriptorType,
     },
   }),
+  interfaces: [nodeInterface],
 });

@@ -1,15 +1,15 @@
 'use strict';
 const {GraphQLString, GraphQLObjectType, GraphQLNonNull, GraphQLList} = require('graphql'),
+  {globalIdField} = require('graphql-relay'),
+  {nodeInterface} = require('./nodeDefinitions'),
   databaseHelpers = require('../databaseHelpers'),
   DocumentPartType = require('./DocumentPartType'),
   DocumentVisibilityLevel = require('./DocumentVisibilityLevel');
 
 module.exports = new GraphQLObjectType({
   name: 'Document',
-  fields: {
-    id: {
-      type: new GraphQLNonNull(GraphQLString),
-    },
+  fields: () => ({
+    id: globalIdField('Document'),
     name: {
       type: GraphQLString,
     },
@@ -22,5 +22,6 @@ module.exports = new GraphQLObjectType({
     visibility: {
       type: new GraphQLNonNull(DocumentVisibilityLevel),
     },
-  },
+  }),
+  interfaces: [nodeInterface],
 });

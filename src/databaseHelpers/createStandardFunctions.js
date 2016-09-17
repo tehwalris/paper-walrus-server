@@ -4,7 +4,10 @@ module.exports = function createStandardFunctions(tableName, fields) {
   const prefixedFields = fields.map(field => `${tableName}.${field}`);
 
   function get(context) {
-    return context.knex.select(...prefixedFields).from(tableName);
+    return context.knex.select(
+      ...prefixedFields,
+      context.knex.raw(`'${tableName}' as "__tableName"`) //for Relay type resolver
+    ).from(tableName);
   }
 
   function getById(context, id) {

@@ -1,6 +1,7 @@
 'use strict';
 const {GraphQLString, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLBoolean} = require('graphql'),
   _ = require('lodash'),
+  nodeDefinitions = require('./nodeDefinitions'),
   databaseHelpers = require('../databaseHelpers'),
   SourceFileType = require('./SourceFileType'),
   WorkSetType = require('./WorkSetType'),
@@ -16,6 +17,7 @@ module.exports = new GraphQLObjectType({
       resolve: (parent, args) => fakeStore.workSets[args.id],
     },
     /* real queries start here */ //TODO
+    node: nodeDefinitions.nodeField,
     documents: {
       type: new GraphQLList(DocumentType),
       resolve: (parent, args, context) => {
