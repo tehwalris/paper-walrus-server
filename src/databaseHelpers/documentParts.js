@@ -3,7 +3,7 @@ const createStandardFunctions = require('./createStandardFunctions');
 
 const standardFunctions = createStandardFunctions(
   'documentParts',
-  ['id', 'sourceFileId']
+  ['id', 'sourceFileId', 'documentId']
 );
 
 function getOfDocument(context, documentId) {

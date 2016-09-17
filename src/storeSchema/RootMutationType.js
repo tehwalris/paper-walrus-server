@@ -3,6 +3,7 @@ const {GraphQLString, GraphQLObjectType, GraphQLNonNull} = require('graphql'),
   databaseHelpers = require('../databaseHelpers'),
   mutationHelpers = require('./mutationHelpers'),
   DocumentType = require('./DocumentType'),
+  DocumentPartType = require('./DocumentPartType'),
   DocumentVisibilityLevel = require('./DocumentVisibilityLevel');
 
 module.exports = new GraphQLObjectType({
@@ -26,5 +27,11 @@ module.exports = new GraphQLObjectType({
           .then(() => databaseHelpers.documents.getById(context, id)); //TODO single query
       },
     },
+    ...mutationHelpers.getMutationTemplatesForType(DocumentPartType, databaseHelpers.documentParts, {
+      createInputFields: {
+        documentId: {type: new GraphQLNonNull(GraphQLString)},
+        sourceFileId: {type: new GraphQLNonNull(GraphQLString)},
+      },
+    }),
   ]),
 });

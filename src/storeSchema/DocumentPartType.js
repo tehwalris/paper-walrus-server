@@ -2,12 +2,11 @@
 const {GraphQLObjectType, GraphQLNonNull, GraphQLString} = require('graphql'),
   databaseHelpers = require('../databaseHelpers'),
   SourceFileType = require('./SourceFileType'),
-  LocationDescriptorType = require('./LocationDescriptorType'),
-  fakeStore = require('../fakeStore');
+  LocationDescriptorType = require('./LocationDescriptorType');
 
 module.exports = new GraphQLObjectType({
   name: 'DocumentPart',
-  fields: {
+  fields: () => ({
     id: {
       type: new GraphQLNonNull(GraphQLString),
     },
@@ -17,8 +16,14 @@ module.exports = new GraphQLObjectType({
         return databaseHelpers.sourceFiles.getById(context, documentPart.sourceFileId);
       },
     },
+    document: {
+      type: new GraphQLNonNull(require('./DocumentType')),
+      resolve: (documentPart, args, context) => {
+        return databaseHelpers.documents.getById(context, documentPart.documentId);
+      },
+    },
     location: {
       type: LocationDescriptorType,
     },
-  },
+  }),
 });
