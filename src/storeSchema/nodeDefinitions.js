@@ -8,7 +8,7 @@ const prepareTypeInfo = _.memoize(() => {
   const graphqlTypesByTableName = {
     documents: require('./DocumentType'),
     documentParts: require('./DocumentPartType'),
-    sourceFiles: require('./SourceFile'),
+    sourceFiles: require('./SourceFileType'),
   };
   const getByIdByGraphqlTypeName = _.chain(graphqlTypesByTableName)
     .invertBy(graphqlType => graphqlType.name)
@@ -21,7 +21,7 @@ module.exports = nodeDefinitions(
   (globalId, context) => {
     const {type, id} = fromGlobalId(globalId);
     const getById = prepareTypeInfo().getByIdByGraphqlTypeName[type];
-    return getById ? getById(id) : null;
+    return getById ? getById(context, id) : null;
   },
   (object) => {
     return prepareTypeInfo().graphqlTypesByTableName[object.__tableName] || null;
