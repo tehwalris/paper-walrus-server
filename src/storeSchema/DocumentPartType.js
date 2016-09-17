@@ -8,6 +8,9 @@ const {GraphQLObjectType, GraphQLNonNull, GraphQLString} = require('graphql'),
 module.exports = new GraphQLObjectType({
   name: 'DocumentPart',
   fields: {
+    id: {
+      type: new GraphQLNonNull(GraphQLString),
+    },
     sourceFile: {
       type: new GraphQLNonNull(SourceFileType),
       resolve: (documentPart, args, context) => {
