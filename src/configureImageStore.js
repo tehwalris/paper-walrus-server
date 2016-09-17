@@ -21,7 +21,7 @@ function moveAllFilesExcept(source, destination, exceptions) {
 }
 
 function getOwnedFilenames(context) {
-  return databaseHelpers.getSourceFiles(context)
+  return databaseHelpers.sourceFiles.get(context)
     .then(sourceFiles => 
       _.chain(sourceFiles)
         .flatMap(sourceFile => [sourceFile.filename, sourceFile.previewFilename])

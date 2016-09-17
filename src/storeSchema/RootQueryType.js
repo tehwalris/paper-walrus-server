@@ -19,14 +19,14 @@ module.exports = new GraphQLObjectType({
     documents: {
       type: new GraphQLList(DocumentType),
       resolve: (parent, args, context) => {
-        return databaseHelpers.getDocuments(context);
+        return databaseHelpers.documents.get(context);
       },
     },
     document: {
       type: DocumentType,
       args: {id: {type: new GraphQLNonNull(GraphQLString)}},
       resolve: (parent, args, context) => {
-        return databaseHelpers.getDocumentById(context, args.id);
+        return databaseHelpers.documents.getById(context, args.id);
       },
     },
     sourceFiles: {
@@ -34,8 +34,8 @@ module.exports = new GraphQLObjectType({
       args: {onlyUnassigned: {type: GraphQLBoolean}},
       resolve: (parent, args, context) => {
         if(args.onlyUnassigned)
-          return databaseHelpers.getUnassignedSourceFiles(context);
-        return databaseHelpers.getSourceFiles(context);
+          return databaseHelpers.sourceFiles.getUnassigned(context);
+        return databaseHelpers.sourceFiles.get(context);
       },
     },
   },

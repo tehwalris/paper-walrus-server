@@ -11,7 +11,7 @@ module.exports = new GraphQLObjectType({
     sourceFile: {
       type: new GraphQLNonNull(SourceFileType),
       resolve: (documentPart, args, context) => {
-        return databaseHelpers.getSourceFileById(context, documentPart.sourceFileId);
+        return databaseHelpers.sourceFiles.getById(context, documentPart.sourceFileId);
       },
     },
     location: {

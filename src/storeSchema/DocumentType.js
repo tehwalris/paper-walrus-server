@@ -16,7 +16,7 @@ module.exports = new GraphQLObjectType({
     parts: {
       type: new GraphQLNonNull(new GraphQLList(DocumentPartType)),
       resolve: (document, args, context) => {
-        return databaseHelpers.getPartsOfDocument(context, document.id);
+        return databaseHelpers.documentParts.getOfDocument(context, document.id);
       },
     },
     visibility: {

@@ -18,8 +18,8 @@ module.exports = new GraphQLObjectType({
         },
       })}},
       resolve: (parent, {input}, context) => {
-        return databaseHelpers.createDocument(context, input).returning('id')
-          .then(([id]) => databaseHelpers.getDocumentById(context, id)); //TODO single query
+        return databaseHelpers.documents.create(context, input).returning('id')
+          .then(([id]) => databaseHelpers.documents.getById(context, id)); //TODO single query
       },
     },
     renameDocument: {
@@ -32,8 +32,8 @@ module.exports = new GraphQLObjectType({
         },
       })}},
       resolve: (parent, {input: {id, name}}, context) => {
-        return context.knex('documents').where('documents.id', id).update({name: name || null})
-          .then(() => databaseHelpers.getDocumentById(context, id)); //TODO single query
+        return databaseHelpers.documents.updateById(context, id, {name: name || null}).returning('id')
+          .then(([id]) => databaseHelpers.documents.getById(context, id)); //TODO single query
       },
     },
     deleteDocument: {
@@ -45,7 +45,7 @@ module.exports = new GraphQLObjectType({
         },
       })}},
       resolve: (parent, {input: {id, name}}, context) => {
-        return databaseHelpers.deleteDocument(context, id).then(() => id);
+        return databaseHelpers.documents.deleteById(context, id).then(() => id);
       },
     },
   },

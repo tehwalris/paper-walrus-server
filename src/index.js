@@ -84,7 +84,7 @@ configureDatabase(config.knex)
 
         function createSourceFiles(previews, files) {
           return Promise.all(_.zip(files, previews).map(([file, previewFilename]) => {
-            return databaseHelpers.createSourceFile({knex}, {
+            return databaseHelpers.sourceFiles.create({knex}, {
               filename: file.filename,
               mimeType: file.mimetype,
               previewFilename,
