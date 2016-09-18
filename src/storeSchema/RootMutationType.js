@@ -1,5 +1,6 @@
 'use strict';
 const {GraphQLString, GraphQLObjectType, GraphQLNonNull} = require('graphql'),
+  {mutationWithClientMutationId, fromGlobalId} = require('graphql-relay'),
   databaseHelpers = require('../databaseHelpers'),
   mutationHelpers = require('./mutationHelpers'),
   DocumentType = require('./DocumentType'),
@@ -8,30 +9,24 @@ const {GraphQLString, GraphQLObjectType, GraphQLNonNull} = require('graphql'),
 
 module.exports = new GraphQLObjectType({
   name: 'RootMutationType',
-  fields: mutationHelpers.convertTemplatesToMutations([
-    ...mutationHelpers.getMutationTemplatesForType(DocumentType, databaseHelpers.documents, {
-      createInputFields: {
-        name: {type: GraphQLString},
-        visibility: {type: new GraphQLNonNull(DocumentVisibilityLevel)},
-      },
-    }),
-    {
-      name: 'renameDocument',
+  fields: () => ({
+    renameDocument: mutationWithClientMutationId({
+      name: 'RenameDocument',
       inputFields: {
         id: {type: new GraphQLNonNull(GraphQLString)},
         name: {type: GraphQLString},
       },
-      returnType: DocumentType,
-      resolve: (parent, {input: {id, name}}, context) => {
-        return databaseHelpers.documents.updateById(context, id, {name: name || null})
-          .then(() => databaseHelpers.documents.getById(context, id)); //TODO single query
+      outputFields: {
+        document: {
+          type: DocumentType,
+          resolve: ({id}, args, context) => databaseHelpers.documents.getById(context, id),
+        },
       },
-    },
-    ...mutationHelpers.getMutationTemplatesForType(DocumentPartType, databaseHelpers.documentParts, {
-      createInputFields: {
-        documentId: {type: new GraphQLNonNull(GraphQLString)},
-        sourceFileId: {type: new GraphQLNonNull(GraphQLString)},
+      mutateAndGetPayload: ({id: globalId, name}, context) => {
+        const {id} = fromGlobalId(globalId);
+        return databaseHelpers.documents.updateById(context, id, {name: name || null})
+          .then(() => ({id}));
       },
     }),
-  ]),
+  }),
 });
