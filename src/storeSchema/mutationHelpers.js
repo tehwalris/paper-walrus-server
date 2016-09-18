@@ -1,43 +1,49 @@
 'use strict';
 const {GraphQLObjectType ,GraphQLInputObjectType, GraphQLNonNull, GraphQLString} = require('graphql'),
-  _ = require('lodash');
+  {mutationWithClientMutationId, fromGlobalId} = require('graphql-relay'),
+  _ = require('lodash'),
+  ViewerType = require('./ViewerType');
+
+const viewerField = {
+  type: ViewerType,
+  resolve: () => ({}),
+};
 
 function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-function getInputTypeName(mutationName) {
-  return `${capitalizeFirstLetter(mutationName)}Input`;
-}
-
-function createStandardMutation({name, inputFields, returnType, resolve}) {
-  return {
-    type: returnType,
-    args: {
-      input: {
-        type: new GraphQLInputObjectType({
-          name: getInputTypeName(name),
-          fields: inputFields,
-        }),
-      },
-    },
-    resolve,
-  };
+function lowercaseFirstLetter(string) {
+  return string.charAt(0).toLowerCase() + string.slice(1);
 }
 
 function getMutationName(action, Type) {
-  return `${action}${capitalizeFirstLetter(Type.name)}`;
+  return `${capitalizeFirstLetter(action)}${capitalizeFirstLetter(Type.name)}`;
 }
 
 function getMutationTemplatesForType(Type, databaseHelpersForType, {createInputFields}) {
+  const valueFieldName = lowercaseFirstLetter(Type.name);
   return [
     {
       name: getMutationName('create', Type),
-      inputFields: createInputFields,
-      returnType: Type,
-      resolve: (parent, {input}, context) => {
-        return databaseHelpersForType.create(context, input).returning('id')
-          .then(([id]) => databaseHelpersForType.getById(context, id)); //TODO single query
+      inputFields: {
+        [valueFieldName]: {
+          type: new GraphQLInputObjectType({
+            name: `${getMutationName('create', Type)}InputValue`,
+            fields: createInputFields,
+          }),
+        },
+      },
+      outputFields: {
+        [valueFieldName]: {
+          type: Type,
+        },
+        viewer: viewerField,
+      },
+      mutateAndGetPayload: (input, context) => {
+        return databaseHelpersForType.create(context, input[valueFieldName]).returning('id')
+          .then(([id]) => databaseHelpersForType.getById(context, id)) //TODO single query
+          .then(value => ({[valueFieldName]: value}));
       },
     },
     {
@@ -45,9 +51,18 @@ function getMutationTemplatesForType(Type, databaseHelpersForType, {createInputF
       inputFields: {
         id: {type: new GraphQLNonNull(GraphQLString)},
       },
-      returnType: GraphQLString,
-      resolve: (parent, {input: {id}}, context) => {
-        return databaseHelpersForType.deleteById(context, id).then(() => id);
+      outputFields: {
+        [valueFieldName]: {
+          type: Type,
+        },
+        viewer: viewerField,
+      },
+      mutateAndGetPayload: ({id: globalId}, context) => {
+        const {id} = fromGlobalId(globalId);
+        return databaseHelpersForType.getById(context, id).then(deletedValue => {
+          return databaseHelpersForType.deleteById(context, id) //TODO single query
+            .then(value => ({[valueFieldName]: value}));
+        });
       },
     },
   ];
@@ -55,13 +70,12 @@ function getMutationTemplatesForType(Type, databaseHelpersForType, {createInputF
 
 function convertTemplatesToMutations(templates) {
   return _.chain(templates)
-    .keyBy('name')
-    .mapValues(template => createStandardMutation(template))
+    .keyBy(template => lowercaseFirstLetter(template.name))
+    .mapValues(template => mutationWithClientMutationId(template))
     .value();
 }
 
 module.exports = {
-  createStandardMutation,
   getMutationTemplatesForType,
   convertTemplatesToMutations,
 };

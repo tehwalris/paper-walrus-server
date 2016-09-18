@@ -1,6 +1,6 @@
 'use strict';
 const {GraphQLString, GraphQLObjectType, GraphQLNonNull} = require('graphql'),
-  {mutationWithClientMutationId, fromGlobalId} = require('graphql-relay'),
+  {fromGlobalId} = require('graphql-relay'),
   databaseHelpers = require('../databaseHelpers'),
   mutationHelpers = require('./mutationHelpers'),
   DocumentType = require('./DocumentType'),
@@ -9,8 +9,16 @@ const {GraphQLString, GraphQLObjectType, GraphQLNonNull} = require('graphql'),
 
 module.exports = new GraphQLObjectType({
   name: 'RootMutationType',
-  fields: () => ({
-    renameDocument: mutationWithClientMutationId({
+  fields: () => mutationHelpers.convertTemplatesToMutations([
+    ...mutationHelpers.getMutationTemplatesForType(
+      DocumentType,
+      databaseHelpers.documents,
+      {createInputFields: {
+        name: {type: GraphQLString},
+        visibility: {type: new GraphQLNonNull(DocumentVisibilityLevel)},
+      }}
+    ),
+    {
       name: 'RenameDocument',
       inputFields: {
         id: {type: new GraphQLNonNull(GraphQLString)},
@@ -27,6 +35,6 @@ module.exports = new GraphQLObjectType({
         return databaseHelpers.documents.updateById(context, id, {name: name || null})
           .then(() => ({id}));
       },
-    }),
-  }),
+    },
+  ]),
 });
