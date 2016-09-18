@@ -64,46 +64,29 @@ protectedRoutes.use(function(req, res, next) {
   }
 });
 
+function loadSourceFiles (files) {
+  return Promise.all(files.map(file => previewGenerator.generate(file.path, file.mimetype)))
+    .then(previews => _.zipWith(files, previews, (file, previewFilename) => ({
+      filename: file.filename,
+      mimeType: file.mimetype,
+      previewFilename,
+    })));
+}
+
 configureDatabase(config.knex)
   .catch(e => {
     console.error('Startup failed.', e);
     process.exit(1);
   })
   .then(knex => {
-    protectedRoutes.use('/graphql', graphqlHttp({
+    protectedRoutes.use('/graphql', upload.any(), graphqlHttp(({files}) => ({
       schema: storeSchema,
       graphiql: true,
-      context: {knex},
-    }));
-
-    protectedRoutes.post('/uploadSourceFiles', upload.any(), (req, res, next) => {
-      knex.transaction(trx => {
-        function generatePreviews(files) {
-          return Promise.all(files.map(file => previewGenerator.generate(file.path, file.mimetype)));
-        }
-
-        function createSourceFiles(previews, files) {
-          return Promise.all(_.zip(files, previews).map(([file, previewFilename]) => {
-            return databaseHelpers.sourceFiles.create({knex}, {
-              filename: file.filename,
-              mimeType: file.mimetype,
-              previewFilename,
-            }).transacting(trx);
-          }));
-        }
-
-        generatePreviews(req.files)
-          .then(previews => createSourceFiles(previews, req.files))
-          .then(() => {
-            trx.commit();
-            res.sendStatus(200);
-          })
-          .catch(err => {
-            trx.rollback();
-            next(err);
-          });
-      });
-    });
+      context: {
+        knex,
+        loadSourceFiles: loadSourceFiles.bind(null, files),
+      },
+    })));
 
     app.use(protectedRoutes);
 
