@@ -1,6 +1,7 @@
 'use strict';
-const {GraphQLString, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLBoolean} = require('graphql'),
+const {GraphQLString, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLBoolean, GraphQLID} = require('graphql'),
   _ = require('lodash'),
+  {nodeInterface} = require('./nodeDefinitions'),
   databaseHelpers = require('../databaseHelpers'),
   SourceFileType = require('./SourceFileType'),
   WorkSetType = require('./WorkSetType'),
@@ -10,9 +11,9 @@ const {GraphQLString, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLBoo
 
 module.exports = new GraphQLObjectType({
   name: 'Viewer',
-  fields: {
+  fields: () => ({
     id: {
-      type: new GraphQLNonNull(GraphQLString),
+      type: new GraphQLNonNull(GraphQLID),
       resolve: () => VIEWER_ID,
     },
     workSet: {
@@ -36,5 +37,6 @@ module.exports = new GraphQLObjectType({
         return databaseHelpers.sourceFiles.get(context);
       },
     },
-  },
+  }),
+  interfaces: [nodeInterface],
 });

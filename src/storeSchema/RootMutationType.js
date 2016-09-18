@@ -6,12 +6,7 @@ const {GraphQLString, GraphQLObjectType, GraphQLInputObjectType, GraphQLNonNull}
   DocumentType = require('./DocumentType'),
   DocumentPartType = require('./DocumentPartType'),
   DocumentVisibilityLevel = require('./DocumentVisibilityLevel'),
-  ViewerType = require('./ViewerType'); //TODO
-
-const viewerField = { //TODO
-  type: ViewerType,
-  resolve: () => ({}),
-};
+  viewerField = require('./viewerField');
 
 module.exports = new GraphQLObjectType({
   name: 'RootMutationType',

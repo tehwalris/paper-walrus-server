@@ -1,15 +1,12 @@
 'use strict';
 const {GraphQLObjectType} = require('graphql'),
   nodeDefinitions = require('./nodeDefinitions'),
-  ViewerType = require('./ViewerType');
+  viewerField = require('./viewerField');
 
 module.exports = new GraphQLObjectType({
   name: 'RootQueryType',
   fields: {
     node: nodeDefinitions.nodeField,
-    viewer: {
-      type: ViewerType,
-      resolve: () => ({}),
-    },
+    viewer: viewerField,
   },
 });

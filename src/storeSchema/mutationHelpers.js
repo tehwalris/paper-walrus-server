@@ -2,12 +2,7 @@
 const {GraphQLObjectType, GraphQLInputObjectType, GraphQLNonNull, GraphQLString} = require('graphql'),
   {mutationWithClientMutationId, fromGlobalId} = require('graphql-relay'),
   _ = require('lodash'),
-  ViewerType = require('./ViewerType');
-
-const viewerField = {
-  type: ViewerType,
-  resolve: () => ({}),
-};
+  viewerField = require('./viewerField');
 
 function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
