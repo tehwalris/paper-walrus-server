@@ -1,5 +1,5 @@
 'use strict';
-const {GraphQLObjectType ,GraphQLInputObjectType, GraphQLNonNull, GraphQLString} = require('graphql'),
+const {GraphQLObjectType, GraphQLInputObjectType, GraphQLNonNull, GraphQLString} = require('graphql'),
   {mutationWithClientMutationId, fromGlobalId} = require('graphql-relay'),
   _ = require('lodash'),
   ViewerType = require('./ViewerType');
