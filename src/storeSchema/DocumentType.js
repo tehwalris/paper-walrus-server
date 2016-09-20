@@ -1,5 +1,5 @@
 'use strict';
-const {GraphQLString, GraphQLObjectType, GraphQLNonNull, GraphQLList} = require('graphql'),
+const {GraphQLString, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLInt} = require('graphql'),
   {globalIdField} = require('graphql-relay'),
   {nodeInterface} = require('./nodeDefinitions'),
   databaseHelpers = require('../databaseHelpers'),
@@ -12,6 +12,9 @@ module.exports = new GraphQLObjectType({
     id: globalIdField('Document'),
     name: {
       type: GraphQLString,
+    },
+    partOrder: {
+      type: new GraphQLList(GraphQLInt),
     },
     parts: {
       type: new GraphQLNonNull(new GraphQLList(DocumentPartType)),

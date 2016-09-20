@@ -6,13 +6,15 @@ const {GraphQLString, GraphQLObjectType, GraphQLInputObjectType, GraphQLNonNull}
   DocumentType = require('./DocumentType'),
   DocumentPartType = require('./DocumentPartType'),
   DocumentVisibilityLevel = require('./DocumentVisibilityLevel'),
+  viewerField = require('./viewerField'),
   UploadSourceFilesTemplate = require('./mutations/UploadSourceFilesTemplate'),
-  viewerField = require('./viewerField');
+  CreateDocumentPartTemplate = require('./mutations/CreateDocumentPartTemplate');
 
 module.exports = new GraphQLObjectType({
   name: 'RootMutationType',
   fields: () => mutationHelpers.convertTemplatesToMutations([
     UploadSourceFilesTemplate,
+    CreateDocumentPartTemplate,
     ...mutationHelpers.getMutationTemplatesForType(
       DocumentType,
       databaseHelpers.documents,
@@ -21,46 +23,6 @@ module.exports = new GraphQLObjectType({
         visibility: {type: new GraphQLNonNull(DocumentVisibilityLevel)},
       }}
     ),
-    {
-      name: 'CreateDocumentPart',
-      inputFields: {
-        documentPart: {
-          type: new GraphQLInputObjectType({
-            name: `CreateDocumentPartInputValue`,
-            fields: {
-              documentId: {type: new GraphQLNonNull(GraphQLString)},
-              sourceFileId: {type: new GraphQLNonNull(GraphQLString)},
-            },
-          }),
-        },
-      },
-      outputFields: {
-        documentPart: {
-          type: DocumentPartType,
-          resolve: ({documentPartId}, args, context) => {
-            return databaseHelpers.documentParts.getById(context, documentPartId);
-          },
-        },
-        document: {
-          type: DocumentType,
-          resolve: ({documentId}, args, context) => {
-            return databaseHelpers.documents.getById(context, documentId);
-          },
-        },
-        viewer: viewerField,
-      },
-      mutateAndGetPayload: (input, context) => {
-        const inputValue = {
-          documentId: fromGlobalId(input.documentPart.documentId).id,
-          sourceFileId: fromGlobalId(input.documentPart.sourceFileId).id,
-        };
-        return databaseHelpers.documentParts.create(context, inputValue).returning('id')
-          .then(([documentPartId]) => ({
-            documentPartId,
-            documentId: inputValue.documentId,
-          }));
-      },
-    },
     {
       name: 'RenameDocument',
       inputFields: {
