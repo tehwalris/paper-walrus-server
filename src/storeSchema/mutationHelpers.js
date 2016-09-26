@@ -16,16 +16,20 @@ function getMutationName(action, Type) {
   return `${capitalizeFirstLetter(action)}${capitalizeFirstLetter(Type.name)}`;
 }
 
-function getMutationTemplatesForType(Type, databaseHelpersForType, {createInputFields}) {
+function getMutationTemplatesForType(Type, databaseHelpersForType, options) {
+  _.defaults(options, {
+    createInputFields: {},
+    mutationTypes: ['create', 'delete'],
+  });
   const valueFieldName = lowercaseFirstLetter(Type.name);
-  return [
-    {
+  const templatesByType = {
+    create: {
       name: getMutationName('create', Type),
       inputFields: {
         [valueFieldName]: {
           type: new GraphQLInputObjectType({
             name: `${getMutationName('create', Type)}InputValue`,
-            fields: createInputFields,
+            fields: options.createInputFields,
           }),
         },
       },
@@ -41,7 +45,7 @@ function getMutationTemplatesForType(Type, databaseHelpersForType, {createInputF
           .then(value => ({[valueFieldName]: value}));
       },
     },
-    {
+    delete: {
       name: getMutationName('delete', Type),
       inputFields: {
         id: {type: new GraphQLNonNull(GraphQLString)},
@@ -60,7 +64,8 @@ function getMutationTemplatesForType(Type, databaseHelpersForType, {createInputF
         });
       },
     },
-  ];
+  };
+  return _.values(_.pick(templatesByType, options.mutationTypes));
 }
 
 function convertTemplatesToMutations(templates) {
