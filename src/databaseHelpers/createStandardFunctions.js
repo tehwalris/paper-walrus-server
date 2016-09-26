@@ -10,7 +10,7 @@ module.exports = function createStandardFunctions(tableName, fields) {
     ).from(tableName);
   }
 
-  function getById(context, id) {
+  function getById(context, id) { //Unchainable
     return get(context).where(`${tableName}.id`, id).then(rows => rows[0]);
   }
 

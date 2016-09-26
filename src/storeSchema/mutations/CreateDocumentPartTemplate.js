@@ -6,13 +6,6 @@ const {GraphQLString, GraphQLInputObjectType, GraphQLNonNull} = require('graphql
   viewerField = require('../viewerField'),
   databaseHelpers = require('../../databaseHelpers');
 
-function appendPartToList(knex, documentPartId, documentId) {
-  return knex('documents').where('documents.id', documentId)
-    .update({
-      'partOrder': knex.raw(`array_append("partOrder", ${documentPartId})`),
-    });
-}
-
 module.exports = {
   name: 'CreateDocumentPart',
   inputFields: {
@@ -50,7 +43,11 @@ module.exports = {
       const trxContext = Object.assign({}, context, {knex: trx});
       return databaseHelpers.documentParts.create(trxContext, inputValue).returning('id')
         .then(([documentPartId]) => {
-          return appendPartToList(trx, documentPartId, inputValue.documentId)
+          return databaseHelpers.documents.appendPartToList(
+            trxContext,
+            documentPartId,
+            inputValue.documentId
+          )
             .then(() => ({
               documentPartId,
               documentId: inputValue.documentId,

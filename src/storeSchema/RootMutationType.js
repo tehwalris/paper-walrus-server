@@ -8,13 +8,17 @@ const {GraphQLString, GraphQLObjectType, GraphQLInputObjectType, GraphQLNonNull}
   DocumentVisibilityLevel = require('./DocumentVisibilityLevel'),
   viewerField = require('./viewerField'),
   UploadSourceFilesTemplate = require('./mutations/UploadSourceFilesTemplate'),
-  CreateDocumentPartTemplate = require('./mutations/CreateDocumentPartTemplate');
+  CreateDocumentPartTemplate = require('./mutations/CreateDocumentPartTemplate'),
+  DeleteDocumentPartTemplate = require('./mutations/DeleteDocumentPartTemplate'),
+  MoveDocumentPartTemplate = require('./mutations/MoveDocumentPartTemplate');
 
 module.exports = new GraphQLObjectType({
   name: 'RootMutationType',
   fields: () => mutationHelpers.convertTemplatesToMutations([
     UploadSourceFilesTemplate,
     CreateDocumentPartTemplate,
+    DeleteDocumentPartTemplate,
+    MoveDocumentPartTemplate,
     ...mutationHelpers.getMutationTemplatesForType(
       DocumentType,
       databaseHelpers.documents,
