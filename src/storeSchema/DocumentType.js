@@ -5,6 +5,7 @@ const {GraphQLString, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLInt
   {nodeInterface} = require('./nodeDefinitions'),
   databaseHelpers = require('../databaseHelpers'),
   DocumentPartType = require('./DocumentPartType'),
+  TagType = require('./TagType'),
   DocumentVisibilityLevel = require('./DocumentVisibilityLevel');
 
 function getOrderedParts(unorderedParts, partOrder) {
@@ -27,6 +28,12 @@ module.exports = new GraphQLObjectType({
     },
     visibility: {
       type: new GraphQLNonNull(DocumentVisibilityLevel),
+    },
+    tags: {
+      type: new GraphQLNonNull(new GraphQLList(TagType)),
+      resolve: (document, args, context) => {
+        return databaseHelpers.tags.getOfDocument(context, document.id);
+      },
     },
   }),
   interfaces: [nodeInterface],

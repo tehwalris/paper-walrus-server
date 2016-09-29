@@ -10,6 +10,7 @@ const prepareTypeInfo = _.memoize(() => {
     documents: require('./DocumentType'),
     documentParts: require('./DocumentPartType'),
     sourceFiles: require('./SourceFileType'),
+    tags: require('./TagType'),
   };
   const getByIdByGraphqlTypeName = _.chain(graphqlTypesByTableName)
     .invertBy(graphqlType => graphqlType.name)

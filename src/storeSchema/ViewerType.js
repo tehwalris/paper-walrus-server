@@ -6,6 +6,7 @@ const {GraphQLString, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLBoo
   SourceFileType = require('./SourceFileType'),
   WorkSetType = require('./WorkSetType'),
   DocumentType = require('./DocumentType'),
+  TagType = require('./TagType'),
   fakeStore = require('../fakeStore'),
   {VIEWER_ID} = require('../constants');
 
@@ -19,7 +20,7 @@ module.exports = new GraphQLObjectType({
     workSet: {
       type: WorkSetType,
       args: {id: {type: new GraphQLNonNull(GraphQLString)}},
-      resolve: (parent, args) => fakeStore.workSets[args.id],
+      resolve: (parent, args) => fakeStore.workSets[args.id], //TODO
     },
     /* real queries start here */ //TODO
     documents: {
@@ -35,6 +36,12 @@ module.exports = new GraphQLObjectType({
         if(args.onlyUnassigned)
           return databaseHelpers.sourceFiles.getUnassigned(context);
         return databaseHelpers.sourceFiles.get(context);
+      },
+    },
+    tags: {
+      type: new GraphQLList(TagType),
+      resolve: (parent, args, context) => {
+        return databaseHelpers.tags.get(context);
       },
     },
   }),

@@ -6,12 +6,15 @@ const {GraphQLString, GraphQLObjectType, GraphQLInputObjectType, GraphQLNonNull}
   DocumentType = require('./DocumentType'),
   DocumentPartType = require('./DocumentPartType'),
   SourceFileType = require('./SourceFileType'),
+  TagType = require('./TagType'),
   DocumentVisibilityLevel = require('./DocumentVisibilityLevel'),
   viewerField = require('./viewerField'),
   UploadSourceFilesTemplate = require('./mutations/UploadSourceFilesTemplate'),
   CreateDocumentPartTemplate = require('./mutations/CreateDocumentPartTemplate'),
   DeleteDocumentPartTemplate = require('./mutations/DeleteDocumentPartTemplate'),
-  MoveDocumentPartTemplate = require('./mutations/MoveDocumentPartTemplate');
+  MoveDocumentPartTemplate = require('./mutations/MoveDocumentPartTemplate'),
+  AddTagToDocumentTemplate = require('./mutations/AddTagToDocumentTemplate'),
+  RemoveTagFromDocumentTemplate = require('./mutations/RemoveTagFromDocumentTemplate');
 
 module.exports = new GraphQLObjectType({
   name: 'RootMutationType',
@@ -20,10 +23,23 @@ module.exports = new GraphQLObjectType({
     CreateDocumentPartTemplate,
     DeleteDocumentPartTemplate,
     MoveDocumentPartTemplate,
+    AddTagToDocumentTemplate,
+    RemoveTagFromDocumentTemplate,
     ...mutationHelpers.getMutationTemplatesForType(
       SourceFileType,
       databaseHelpers.sourceFiles,
       {mutationTypes: ['delete']}
+    ),
+    ...mutationHelpers.getMutationTemplatesForType(
+      TagType,
+      databaseHelpers.tags,
+      {
+        createInputFields: {
+          type: {type: new GraphQLNonNull(GraphQLString)},
+          text: {type: new GraphQLNonNull(GraphQLString)},
+        },
+        mutationTypes: ['create'],
+      }
     ),
     ...mutationHelpers.getMutationTemplatesForType(
       DocumentType,
