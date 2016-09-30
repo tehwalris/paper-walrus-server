@@ -38,7 +38,6 @@ module.exports = new GraphQLObjectType({
           type: {type: new GraphQLNonNull(GraphQLString)},
           text: {type: new GraphQLNonNull(GraphQLString)},
         },
-        mutationTypes: ['create'],
       }
     ),
     ...mutationHelpers.getMutationTemplatesForType(
