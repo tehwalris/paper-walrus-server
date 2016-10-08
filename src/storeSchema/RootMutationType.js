@@ -14,7 +14,8 @@ const {GraphQLString, GraphQLObjectType, GraphQLInputObjectType, GraphQLNonNull}
   DeleteDocumentPartTemplate = require('./mutations/DeleteDocumentPartTemplate'),
   MoveDocumentPartTemplate = require('./mutations/MoveDocumentPartTemplate'),
   AddTagToDocumentTemplate = require('./mutations/AddTagToDocumentTemplate'),
-  RemoveTagFromDocumentTemplate = require('./mutations/RemoveTagFromDocumentTemplate');
+  RemoveTagFromDocumentTemplate = require('./mutations/RemoveTagFromDocumentTemplate'),
+  CleanupTagsTemplate = require('./mutations/CleanupTagsTemplate');
 
 module.exports = new GraphQLObjectType({
   name: 'RootMutationType',
@@ -25,6 +26,7 @@ module.exports = new GraphQLObjectType({
     MoveDocumentPartTemplate,
     AddTagToDocumentTemplate,
     RemoveTagFromDocumentTemplate,
+    CleanupTagsTemplate,
     ...mutationHelpers.getMutationTemplatesForType(
       SourceFileType,
       databaseHelpers.sourceFiles,
