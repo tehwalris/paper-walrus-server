@@ -25,8 +25,13 @@ module.exports = new GraphQLObjectType({
     /* real queries start here */ //TODO
     documents: {
       type: new GraphQLList(DocumentType),
+      args: {requiredTagIds: {type: new GraphQLList(GraphQLString)}},
       resolve: (parent, args, context) => {
-        return databaseHelpers.documents.get(context);
+        if(args.requiredTagIds) {
+          const tagIds = args.requiredTagIds.map(globalId => fromGlobalId(globalId).id);
+          return databaseHelpers.documents.getWithTags(context, tagIds).orderBy('documents.id');
+        }
+        return databaseHelpers.documents.get(context).orderBy('documents.id');
       },
     },
     sourceFiles: {
@@ -34,14 +39,14 @@ module.exports = new GraphQLObjectType({
       args: {onlyUnassigned: {type: GraphQLBoolean}},
       resolve: (parent, args, context) => {
         if(args.onlyUnassigned)
-          return databaseHelpers.sourceFiles.getUnassigned(context);
-        return databaseHelpers.sourceFiles.get(context);
+          return databaseHelpers.sourceFiles.getUnassigned(context).orderBy('sourceFiles.id');
+        return databaseHelpers.sourceFiles.get(context).orderBy('sourceFiles.id');
       },
     },
     tags: {
       type: new GraphQLList(TagType),
       resolve: (parent, args, context) => {
-        return databaseHelpers.tags.get(context);
+        return databaseHelpers.tags.get(context).orderBy('tags.id');
       },
     },
   }),
