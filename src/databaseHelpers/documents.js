@@ -16,6 +16,12 @@ function removePartFromList(context, documentPartId, documentId) {
     .update({partOrder: context.knex.raw(`array_remove("partOrder", ${documentPartId})`)});
 }
 
+function getWithTags(context, tagIds) {
+  return standardFunctions.get(context)
+    .leftJoin('tagAssignments', 'documents.id', 'tagAssignments.documentId')
+    .whereNotNull('tagAssignments.id');
+}
+
 module.exports = Object.assign({}, standardFunctions, {
   appendPartToList,
   removePartFromList,
