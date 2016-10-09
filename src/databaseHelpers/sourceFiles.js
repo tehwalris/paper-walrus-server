@@ -3,7 +3,7 @@ const createStandardFunctions = require('./createStandardFunctions');
 
 const standardFunctions = createStandardFunctions(
   'sourceFiles',
-  ['id', 'filename', 'mimeType', 'previewFilename']
+  ['id', 'filename', 'mimeType', 'previewFilename', 'uploadedAt', 'irlCreatedAt']
 );
 
 function getUnassigned(context) {

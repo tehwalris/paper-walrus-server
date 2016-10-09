@@ -25,6 +25,12 @@ module.exports = new GraphQLObjectType({
     mimeType: {
       type: new GraphQLNonNull(GraphQLString),
     },
+    uploadedAt: {
+      type: new GraphQLNonNull(GraphQLString),
+    },
+    irlCreatedAt: {
+      type: new GraphQLNonNull(GraphQLString),
+    },
   }),
   interfaces: [nodeInterface],
 });
