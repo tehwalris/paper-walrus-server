@@ -22,7 +22,7 @@ function removeFromDocument(context, documentId, tagId) {
 
 function deleteUnused(context) {
   //HACK 
-  //Can't use true join here: https://github.com/tgriesser/knex/issues/873
+  //Can't use true join here https://github.com/tgriesser/knex/issues/873
   //Following didn't work:
   //http://stackoverflow.com/questions/21662726/delete-using-left-outer-join-in-postgres/33723604#33723604
   //Using subquery instead
