@@ -23,15 +23,14 @@ module.exports = {
     },
     viewer: viewerField,
   },
-  mutateAndGetPayload: (input, context) => {
+  mutateAndGetPayload: async (input, context) => {
     const {id} = fromGlobalId(input.id);
-    return databaseHelpers.documentParts.getById(context, id).then(documentPart => {
-      return context.knex.transaction(trx => {
-        const trxContext = Object.assign({}, context, {knex: trx});
-        return databaseHelpers.documentParts.deleteById(trxContext, id)
-          .then(() => databaseHelpers.documents.removePartFromList(trxContext, id, documentPart.documentId));
-      })
-      .then(() => ({documentId: documentPart.documentId, documentPart}));
-    });
+    const documentPart = await databaseHelpers.documentParts.getById(context, id);
+    await context.knex.transaction(async (trx) => {
+      const trxContext = Object.assign({}, context, {knex: trx});
+      await databaseHelpers.documentParts.deleteById(trxContext, id)
+      await databaseHelpers.documents.removePartFromList(trxContext, id, documentPart.documentId)
+    })
+    return {documentId: documentPart.documentId, documentPart}
   },
 };

@@ -34,26 +34,23 @@ module.exports = {
     },
     viewer: viewerField,
   },
-  mutateAndGetPayload: (input, context) => {
-    const inputValue = {
-      documentId: fromGlobalId(input.documentPart.documentId).id,
-      sourceFileId: fromGlobalId(input.documentPart.sourceFileId).id,
-    };
-    return context.knex.transaction(trx => {
+  mutateAndGetPayload: async (input, context) => {
+    const documentId = fromGlobalId(input.documentPart.documentId).id;
+    const sourceFileId = fromGlobalId(input.documentPart.sourceFileId).id;
+    let documentPartId;
+    await context.knex.transaction(async (trx) => {
       const trxContext = Object.assign({}, context, {knex: trx});
-      return databaseHelpers.documentParts.create(trxContext, inputValue).returning('id')
-        .then(([documentPartId]) => {
-          return databaseHelpers.documents.appendPartToList(
-            trxContext,
-            documentPartId,
-            inputValue.documentId
-          )
-            .then(() => ({
-              documentPartId,
-              documentId: inputValue.documentId,
-            }));
-        });
+      const documentPartCreationResponse = await databaseHelpers.documentParts
+        .create(trxContext, { documentId, sourceFileId })
+        .returning('id');
+      documentPartId = documentPartCreationResponse[0]
+      await databaseHelpers.documents.appendPartToList(
+        trxContext,
+        documentPartId,
+        documentId
+      )
     });
+    return {documentPartId, documentId};
   },
 };
 

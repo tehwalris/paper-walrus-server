@@ -1,4 +1,6 @@
 'use strict';
+require('babel-polyfill')
+
 const _ = require('lodash'),
   express = require('express'),
   bodyParser = require('body-parser'),

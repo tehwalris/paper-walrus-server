@@ -38,21 +38,20 @@ module.exports = {
     },
     viewer: viewerField,
   },
-  mutateAndGetPayload: (input, context) => {
+  mutateAndGetPayload: async (input, context) => {
     const {id} = fromGlobalId(input.id);
-    return databaseHelpers.documentParts.getById(context, id).then(documentPart => {
-      return context.knex.transaction(trx => {
-        const trxContext = Object.assign({}, context, {knex: trx});
-        //getById is unchainable, must use get
-        return databaseHelpers.documents.get(trxContext, documentPart.documentId)
-          .where('documents.id', documentPart.documentId).forUpdate()
-          .then(documents => databaseHelpers.documents.updateById(
-            trxContext,
-            documentPart.documentId,
-            {partOrder: getNewPartOrder(documents[0].partOrder, +id, input.targetPosition)}
-          ));
-      })
-      .then(() => ({documentId: documentPart.documentId, documentPart}));
-    });
+    const documentPart = await databaseHelpers.documentParts.getById(context, id);
+    await context.knex.transaction(async (trx) => {
+      const trxContext = Object.assign({}, context, {knex: trx});
+      //getById is unchainable, must use get
+      const documents = await databaseHelpers.documents.get(trxContext, documentPart.documentId)
+        .where('documents.id', documentPart.documentId).forUpdate()
+      await databaseHelpers.documents.updateById(
+        trxContext,
+        documentPart.documentId,
+        {partOrder: getNewPartOrder(documents[0].partOrder, +id, input.targetPosition)}
+      )
+    })
+    return {documentId: documentPart.documentId, documentPart};
   },
 };
