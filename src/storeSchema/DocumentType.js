@@ -35,6 +35,19 @@ module.exports = new GraphQLObjectType({
         return databaseHelpers.tags.getOfDocument(context, document.id);
       },
     },
+    dateRange: {
+      type: new GraphQLObjectType({
+        name: 'DateRange',
+        fields: {
+          start: {type: new GraphQLNonNull(GraphQLString)},
+          end: {type: new GraphQLNonNull(GraphQLString)},
+        },
+      }),
+      resolve: (document) => ({
+        start: document.dateRangeStart.toISOString(),
+        end: document.dateRangeEnd.toISOString(),
+      }),
+    },
   }),
   interfaces: [nodeInterface],
 });

@@ -27,9 +27,11 @@ module.exports = new GraphQLObjectType({
     },
     uploadedAt: {
       type: new GraphQLNonNull(GraphQLString),
+      resolve: date => date.toISOString(),
     },
     irlCreatedAt: {
       type: new GraphQLNonNull(GraphQLString),
+      resolve: date => date.toISOString(),
     },
   }),
   interfaces: [nodeInterface],

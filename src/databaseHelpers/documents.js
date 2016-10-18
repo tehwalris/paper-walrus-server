@@ -3,7 +3,7 @@ const createStandardFunctions = require('./createStandardFunctions');
 
 const standardFunctions = createStandardFunctions(
   'documents',
-  ['id', 'name', 'visibility', 'partOrder']
+  ['id', 'name', 'visibility', 'partOrder', 'dateRangeStart', 'dateRangeEnd']
 );
 
 function appendPartToList(context, documentPartId, documentId) {
