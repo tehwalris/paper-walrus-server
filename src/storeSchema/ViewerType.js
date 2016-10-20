@@ -27,20 +27,22 @@ module.exports = new GraphQLObjectType({
       type: new GraphQLList(DocumentType),
       args: {requiredTagIds: {type: new GraphQLList(GraphQLString)}},
       resolve: (parent, args, context) => {
+        let baseQuery = databaseHelpers.documents.get(context);
         if(args.requiredTagIds) {
           const tagIds = args.requiredTagIds.map(globalId => fromGlobalId(globalId).id);
-          return databaseHelpers.documents.getWithTags(context, tagIds).orderBy('documents.id');
+          baseQuery = databaseHelpers.documents.getWithTags(context, tagIds);
         }
-        return databaseHelpers.documents.get(context).orderBy('documents.id');
+        return baseQuery.orderBy('documents.dateRangeStart', 'desc');
       },
     },
     sourceFiles: {
       type: new GraphQLList(SourceFileType),
       args: {onlyUnassigned: {type: GraphQLBoolean}},
       resolve: (parent, args, context) => {
+        let baseQuery = databaseHelpers.sourceFiles.get(context);
         if(args.onlyUnassigned)
-          return databaseHelpers.sourceFiles.getUnassigned(context).orderBy('sourceFiles.id');
-        return databaseHelpers.sourceFiles.get(context).orderBy('sourceFiles.id');
+          baseQuery = databaseHelpers.sourceFiles.getUnassigned(context);
+        return baseQuery.orderBy('sourceFiles.id');
       },
     },
     tags: {
