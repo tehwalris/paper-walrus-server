@@ -17,7 +17,7 @@ module.exports = {
   publicContentPath,
   storePath,
   port: 3000,
-  allowedMimeTypes: ['image/jpeg', 'image/png', 'application/pdf'],
+  allowedMimeTypes: ['image/jpeg', 'image/png', 'application/pdf', 'text/plain'],
   contentCacheMaxAge: 2e9, //a few weeks in ms
   previewSize: {
     width: 200,
