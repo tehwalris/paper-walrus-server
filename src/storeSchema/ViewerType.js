@@ -42,7 +42,7 @@ module.exports = new GraphQLObjectType({
         let baseQuery = databaseHelpers.sourceFiles.get(context);
         if(args.onlyUnassigned)
           baseQuery = databaseHelpers.sourceFiles.getUnassigned(context);
-        return baseQuery.orderBy('sourceFiles.id');
+        return baseQuery.orderBy('sourceFiles.irlCreatedAt', 'desc');
       },
     },
     tags: {
