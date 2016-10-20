@@ -1,6 +1,7 @@
 'use strict';
 const {GraphQLString, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLBoolean, GraphQLID} = require('graphql'),
   _ = require('lodash'),
+  {fromGlobalId} = require('graphql-relay'),
   {nodeInterface} = require('./nodeDefinitions'),
   databaseHelpers = require('../databaseHelpers'),
   SourceFileType = require('./SourceFileType'),

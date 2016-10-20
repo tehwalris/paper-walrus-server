@@ -7,9 +7,14 @@ const standardFunctions = createStandardFunctions(
 );
 
 function getWithTags(context, tagIds) {
+  if(!tagIds.length)
+    return standardFunctions.get(context);
   return standardFunctions.get(context)
-    .leftJoin('tagAssignments', 'documents.id', 'tagAssignments.documentId')
-    .whereNotNull('tagAssignments.id');
+    .innerJoin('tagAssignments', 'documents.id', 'tagAssignments.documentId')
+    .whereIn('tagAssignments.tagId', tagIds)
+    .groupBy('documents.id')
+    .havingRaw('count(*) = ?', [tagIds.length]);
+  ;
 }
 
 // IMPORTANT
@@ -22,5 +27,6 @@ async function getByIdAndLockRelated(context, documentId) {
 }
 
 module.exports = Object.assign({}, standardFunctions, {
+  getWithTags,
   getByIdAndLockRelated,
 });
