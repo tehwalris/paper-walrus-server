@@ -6,6 +6,10 @@ const {GraphQLString, GraphQLInputObjectType, GraphQLNonNull} = require('graphql
   viewerField = require('../viewerField'),
   databaseHelpers = require('../../databaseHelpers');
 
+function getNewPartOrder(oldPartOrder, removedPartId) {
+  return oldPartOrder.filter(partId => partId !== removedPartId);
+}
+
 module.exports = {
   name: 'DeleteDocumentPart',
   inputFields: {
@@ -17,20 +21,25 @@ module.exports = {
     },
     document: {
       type: DocumentType,
-      resolve: ({documentId}, args, context) => {
-        return databaseHelpers.documents.getById(context, documentId);
-      },
     },
     viewer: viewerField,
   },
   mutateAndGetPayload: async (input, context) => {
-    const {id} = fromGlobalId(input.id);
-    const documentPart = await databaseHelpers.documentParts.getById(context, id);
+    const {id: documentPartId} = fromGlobalId(input.id);
+    const documentPart = await databaseHelpers.documentParts.getById(context, documentPartId);
+    const { documentId } = documentPart;
+    let document;
     await context.knex.transaction(async (trx) => {
       const trxContext = Object.assign({}, context, {knex: trx});
-      await databaseHelpers.documentParts.deleteById(trxContext, id)
-      await databaseHelpers.documents.removePartFromList(trxContext, id, documentPart.documentId)
+      document = await databaseHelpers.documents.getByIdAndLockRelated(trxContext, documentId);
+      await databaseHelpers.documentParts.deleteById(trxContext, documentPartId)
+      const documentUpdates = {
+        partOrder: getNewPartOrder(document.partOrder, documentPartId),
+        ...(await databaseHelpers.documentParts.getDateRangeOfDocument(trxContext, documentId)),
+      };
+      await databaseHelpers.documents.updateById(trxContext, documentId, documentUpdates)
+      Object.assign(document, documentUpdates);
     })
-    return {documentId: documentPart.documentId, documentPart}
+    return {document, documentPart}
   },
 };

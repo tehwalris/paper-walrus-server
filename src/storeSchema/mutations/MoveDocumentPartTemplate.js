@@ -32,26 +32,29 @@ module.exports = {
     },
     document: {
       type: DocumentType,
-      resolve: ({documentId}, args, context) => {
-        return databaseHelpers.documents.getById(context, documentId);
-      },
     },
     viewer: viewerField,
   },
   mutateAndGetPayload: async (input, context) => {
     const {id} = fromGlobalId(input.id);
     const documentPart = await databaseHelpers.documentParts.getById(context, id);
+    let document;
     await context.knex.transaction(async (trx) => {
       const trxContext = Object.assign({}, context, {knex: trx});
-      //getById is unchainable, must use get
-      const documents = await databaseHelpers.documents.get(trxContext, documentPart.documentId)
-        .where('documents.id', documentPart.documentId).forUpdate()
+      document = await databaseHelpers.documents.getByIdAndLockRelated(
+        trxContext,
+        documentPart.documentId
+      );
+      const documentUpdates = {
+        partOrder: getNewPartOrder(document.partOrder, +id, input.targetPosition),
+      };
       await databaseHelpers.documents.updateById(
         trxContext,
         documentPart.documentId,
-        {partOrder: getNewPartOrder(documents[0].partOrder, +id, input.targetPosition)}
+        documentUpdates
       )
+      Object.assign(document, documentUpdates);
     })
-    return {documentId: documentPart.documentId, documentPart};
+    return {document, documentPart};
   },
 };

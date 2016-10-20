@@ -6,6 +6,10 @@ const {GraphQLString, GraphQLInputObjectType, GraphQLNonNull} = require('graphql
   viewerField = require('../viewerField'),
   databaseHelpers = require('../../databaseHelpers');
 
+function getNewPartOrder(oldPartOrder, newPartId) {
+  return [...oldPartOrder, newPartId];
+}
+
 module.exports = {
   name: 'CreateDocumentPart',
   inputFields: {
@@ -22,35 +26,31 @@ module.exports = {
   outputFields: {
     documentPart: {
       type: DocumentPartType,
-      resolve: ({documentPartId}, args, context) => {
-        return databaseHelpers.documentParts.getById(context, documentPartId);
-      },
     },
     document: {
       type: DocumentType,
-      resolve: ({documentId}, args, context) => {
-        return databaseHelpers.documents.getById(context, documentId);
-      },
     },
     viewer: viewerField,
   },
   mutateAndGetPayload: async (input, context) => {
     const documentId = fromGlobalId(input.documentPart.documentId).id;
     const sourceFileId = fromGlobalId(input.documentPart.sourceFileId).id;
-    let documentPartId;
+    let documentPart, document;
     await context.knex.transaction(async (trx) => {
       const trxContext = Object.assign({}, context, {knex: trx});
-      const documentPartCreationResponse = await databaseHelpers.documentParts
+      document = await databaseHelpers.documents.getByIdAndLockRelated(trxContext, documentId);
+      const [documentPartId] = await databaseHelpers.documentParts
         .create(trxContext, { documentId, sourceFileId })
         .returning('id');
-      documentPartId = documentPartCreationResponse[0]
-      await databaseHelpers.documents.appendPartToList(
-        trxContext,
-        documentPartId,
-        documentId
-      )
+      documentPart = await databaseHelpers.documentParts.getById(trxContext, documentPartId);
+      const documentUpdates = {
+        partOrder: getNewPartOrder(document.partOrder, documentPartId),
+        ...(await databaseHelpers.documentParts.getDateRangeOfDocument(trxContext, documentId)),
+      };
+      await databaseHelpers.documents.updateById(trxContext, documentId, documentUpdates)
+      Object.assign(document, documentUpdates);
     });
-    return {documentPartId, documentId};
+    return {documentPart, document};
   },
 };
 
