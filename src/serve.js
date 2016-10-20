@@ -66,13 +66,17 @@ protectedRoutes.use(function(req, res, next) {
   }
 });
 
-function loadSourceFiles (files) {
-  return Promise.all(files.map(file => previewGenerator.generate(file.path, file.mimetype)))
-    .then(previews => _.zipWith(files, previews, (file, previewFilename) => ({
-      filename: file.filename,
-      mimeType: file.mimetype,
-      previewFilename,
-    })));
+//HACK defined as const to prevent function hoisting, since
+//this would place the function above babel-polyfill.
+const loadSourceFiles = async function(files) {
+  const previews = await Promise.all(files.map(
+    file => previewGenerator.generate(file.path, file.mimetype)
+  ));
+  return _.zipWith(files, previews, (file, previewFilename) => ({
+    filename: file.filename,
+    mimeType: file.mimetype,
+    previewFilename,
+  }));
 }
 
 configureDatabase(config.knex)
