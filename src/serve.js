@@ -71,12 +71,14 @@ const start = async function() {
     }));
   }
 
-  protectedRoutes.use('/graphql', upload.any(), graphqlHttp(({files}) => ({
+  protectedRoutes.use('/graphql', upload.any(), graphqlHttp(({files, token}) => ({
     schema: storeSchema,
     graphiql: true,
     context: {
       knex,
       loadSourceFiles: loadSourceFiles.bind(null, files),
+      token,
+      authenticator,
     },
   })));
 

@@ -68,5 +68,17 @@ module.exports = new GraphQLObjectType({
           .then(() => ({id}));
       },
     },
+    {
+      name: 'ChangeOwnPassword',
+      inputFields: {
+        password: {type: new GraphQLNonNull(GraphQLString)},
+      },
+      outputFields: {},
+      mutateAndGetPayload: async ({password}, context) => {
+        const passwordHash = await context.authenticator.hashPassword(password);
+        await databaseHelpers.users.updateById(context, context.token.userId, {passwordHash});
+        return {};
+      },
+    },
   ]),
 });
