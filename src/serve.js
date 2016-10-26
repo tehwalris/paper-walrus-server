@@ -7,7 +7,6 @@ const _ = require('lodash'),
   fs = require('fs'),
   path = require('path'),
   uuid = require('uuid').v4,
-  jwt = require('jsonwebtoken'),
   graphqlHttp = require('express-graphql'),
   configureImageStore = require('./configureImageStore'),
   configureDatabase = require('./configureDatabase'),
@@ -16,51 +15,48 @@ const _ = require('lodash'),
   StorePersister = require('./StorePersister'),
   Uploader = require('./Uploader'),
   PreviewGenerator = require('./PreviewGenerator'),
+  Authenticator = require('./Authenticator'),
   config = require('./config'); 
 
 //HACK defined as const to prevent function hoisting, since
 //this would place the function above babel-polyfill.
 //Async functions may be used inside this.
 const start = async function() {
+  const jwtSecret = uuid();
+  const knex = await configureDatabase(config.knex);
+  const authenticator = new Authenticator({knex}, jwtSecret, config.sessionDuration);
   const storePersister = new StorePersister(config.storePath);
   const store = storePersister.getStore();
   const upload = new Uploader(config.imagePath, config.allowedMimeTypes);
   const previewGenerator = new PreviewGenerator(config.imagePath, config.previewExtension, config.previewSize);
 
   const app = express();
+  const protectedRoutes = express.Router();
   app.use(bodyParser.json());
   app.use('/content', express.static(config.imagePath, {maxage: config.contentCacheMaxAge}));
 
-  const jwtSecret = uuid();
-  app.post('/authenticate', (req, res) => {
-    store.authenticateUser(req.body).then(decodedToken => new Promise((resolve, reject) => {
-      jwt.sign(decodedToken, jwtSecret, {
-        expiresIn: config.sessionDuration,
-      }, (err, token) => {
-        if(err) reject(err);
-        else resolve(token);
-      });
-    }))
-    .then(token => res.send({token}))
-    .catch(e => {
-      res.status(401).send('Authentication failed.')
-    });
+  app.post('/authenticate', async (req, res) => {
+    try {
+      const token = await authenticator.authenticate(req.body);
+      res.send({token});
+    } catch (e) {
+      const message = (e instanceof Authenticator.UnauthorizedFailure)
+        ? e.message
+        : 'Authentication failed.';
+      res.status(401).send(message)
+    }
   });
 
-  const protectedRoutes = express.Router();
-  protectedRoutes.use(function(req, res, next) {
+  protectedRoutes.use(async function(req, res, next) {
     const token = req.headers['x-access-token'];
-    if(token) {
-      jwt.verify(token, jwtSecret, function(err, decoded) {
-        if(err) {
-          res.status(401).send('Unauthorized token.');
-        } else {
-          req.token = decoded;
-          next();
-        }
-      });
-    } else {
-      res.status(401).send('No token provided.');
+    try {
+      req.token = await authenticator.confirmAuthenticated(token);
+      next();
+    } catch (e) {
+      const message = (e instanceof Authenticator.UnauthorizedFailure)
+        ? e.message
+        : 'Authentication failed.';
+      res.status(401).send(message)
     }
   });
 
@@ -75,8 +71,6 @@ const start = async function() {
     }));
   }
 
-  const knex = await configureDatabase(config.knex);
-
   protectedRoutes.use('/graphql', upload.any(), graphqlHttp(({files}) => ({
     schema: storeSchema,
     graphiql: true,
@@ -86,9 +80,9 @@ const start = async function() {
     },
   })));
 
-  app.use(protectedRoutes);
-
   await configureImageStore(config, {knex});
+
+  app.use(protectedRoutes);
 
   app.listen(config.port, function () {
     console.log('System up, config:', config);

@@ -5,4 +5,5 @@ module.exports = {
   sourceFiles: require('./sourceFiles'),
   documentParts: require('./documentParts'),
   tags: require('./tags'),
+  users: require('./users'),
 };
