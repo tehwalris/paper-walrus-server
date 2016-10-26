@@ -14,7 +14,6 @@ function getWithTags(context, tagIds) {
     .whereIn('tagAssignments.tagId', tagIds)
     .groupBy('documents.id')
     .havingRaw('count(*) = ?', [tagIds.length]);
-  ;
 }
 
 // IMPORTANT
