@@ -15,8 +15,14 @@ const _ = require('lodash'),
   StorePersister = require('./StorePersister'),
   Uploader = require('./Uploader'),
   PreviewGenerator = require('./PreviewGenerator'),
-  Authenticator = require('./Authenticator'),
-  config = require('./config'); 
+  Authenticator = require('./Authenticator');
+
+let config;
+try {
+  config = require('../config.js');
+} catch (e) {
+  config = require('../config.default.js');
+}
 
 //HACK defined as const to prevent function hoisting, since
 //this would place the function above babel-polyfill.
@@ -78,6 +84,7 @@ const start = async function() {
       knex,
       loadSourceFiles: loadSourceFiles.bind(null, files),
       token,
+      config,
       authenticator,
     },
   })));

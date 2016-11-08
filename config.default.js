@@ -1,3 +1,6 @@
+// Copy this config to config.js and customize it there
+// Only config.js in the project root will be read
+
 'use strict';
 const os = require('os'),
   path = require('path');

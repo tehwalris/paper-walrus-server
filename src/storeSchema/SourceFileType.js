@@ -2,8 +2,7 @@
 const {GraphQLString, GraphQLObjectType, GraphQLNonNull} = require('graphql'),
   {globalIdField} = require('graphql-relay'),
   {nodeInterface} = require('./nodeDefinitions'),
-  path = require('path'),
-  {publicContentPath} = require('../config'); 
+  path = require('path');
 
 module.exports = new GraphQLObjectType({
   name: 'SourceFile',
@@ -11,12 +10,12 @@ module.exports = new GraphQLObjectType({
     id: globalIdField('SourceFile'),
     url: {
       type: new GraphQLNonNull(GraphQLString),
-      resolve: ({filename}) => path.join(publicContentPath, filename),
+      resolve: ({filename}, args, {config}) => path.join(config.publicContentPath, filename),
     },
     previewUrl: {
       type: GraphQLString,
-      resolve: ({previewFilename}) => {
-        return previewFilename && path.join(publicContentPath, previewFilename);
+      resolve: ({previewFilename}, args, {config}) => {
+        return previewFilename && path.join(config.publicContentPath, previewFilename);
       },
     },
     filename: {
