@@ -33,7 +33,9 @@ module.exports = new GraphQLObjectType({
           const tagIds = args.requiredTagIds.map(globalId => fromGlobalId(globalId).id);
           baseQuery = databaseHelpers.documents.getWithTags(context, tagIds);
         }
-        return baseQuery.orderBy('documents.dateRangeStart', 'desc');
+        return baseQuery
+          .orderBy('documents.dateRangeStart', 'desc')
+          .orderBy('documents.id', 'asc');
       },
     },
     sourceFiles: {
@@ -43,7 +45,9 @@ module.exports = new GraphQLObjectType({
         let baseQuery = databaseHelpers.sourceFiles.get(context);
         if(args.onlyUnassigned)
           baseQuery = databaseHelpers.sourceFiles.getUnassigned(context);
-        return baseQuery.orderBy('sourceFiles.irlCreatedAt', 'desc');
+        return baseQuery
+          .orderBy('sourceFiles.irlCreatedAt', 'desc')
+          .orderBy('sourceFiles.id', 'asc');
       },
     },
     tags: {
