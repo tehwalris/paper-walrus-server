@@ -10,13 +10,11 @@ module.exports = new GraphQLObjectType({
     id: globalIdField('SourceFile'),
     url: {
       type: new GraphQLNonNull(GraphQLString),
-      resolve: ({filename}, args, {config}) => path.join(config.publicContentPath, filename),
+      resolve: ({filename}, args, {config, minio}) => minio.presignedGetObject(config.minioBucket, filename),
     },
     previewUrl: {
       type: GraphQLString,
-      resolve: ({previewFilename}, args, {config}) => {
-        return previewFilename && path.join(config.publicContentPath, previewFilename);
-      },
+      resolve: ({previewFilename}, args, {config, minio}) => minio.presignedGetObject(config.minioBucket, previewFilename),
     },
     filename: {
       type: new GraphQLNonNull(GraphQLString),

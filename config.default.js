@@ -1,27 +1,15 @@
 // Copy this config to config.js and customize it there
-// Only config.js in the project root will be read
+// Only one of the config files will be read
 
 'use strict';
-const os = require('os'),
-  path = require('path');
-
-const basePath = process.env.DATA_BASE || path.join(os.homedir(), '.paperWalrus');
-const imagePath = path.join(basePath, 'images');
-const orphanedImagePath = path.join(imagePath, 'orphaned');
-const storePath = path.join(basePath, 'store.json');
-const publicPath = '/api';
-const publicContentPath = path.join(publicPath, 'content');
+const path = require('path');
 
 module.exports = {
-  basePath,
-  imagePath,
-  orphanedImagePath,
-  publicPath,
-  publicContentPath,
-  storePath,
+  publicPath: '/api',
+  publicMinioPath: '/minio',
   port: 3000,
   allowedMimeTypes: ['image/jpeg', 'image/png', 'application/pdf', 'text/plain'],
-  contentCacheMaxAge: 2e9, //a few weeks in ms
+  contentCacheMaxAge: 2e9, // A few weeks in ms
   previewSize: {
     width: 200,
     height: 200,
@@ -37,4 +25,13 @@ module.exports = {
       database : process.env.POSTGRES_DB || 'paper-walrus'
     }
   },
+  minio: {
+    endPoint: process.env.MINIO_HOST || 'minio',
+    port: process.env.MINIO_PORT,
+    secure: true,
+    accessKey: process.env.MINIO_ACCESS_KEY,
+    secretKey: process.env.MINIO_SECRET_KEY,
+  },
+  minioBucket: process.env.MINIO_BUCKET || 'paper-walris',
+  minioRegion: 'us-east-1', // Not relevant
 };

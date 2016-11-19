@@ -8,7 +8,6 @@ const {GraphQLString, GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLBoo
   WorkSetType = require('./WorkSetType'),
   DocumentType = require('./DocumentType'),
   TagType = require('./TagType'),
-  fakeStore = require('../fakeStore'),
   {VIEWER_ID} = require('../constants');
 
 module.exports = new GraphQLObjectType({
@@ -21,7 +20,7 @@ module.exports = new GraphQLObjectType({
     workSet: {
       type: WorkSetType,
       args: {id: {type: new GraphQLNonNull(GraphQLString)}},
-      resolve: (parent, args) => fakeStore.workSets[args.id], //TODO
+      // resolve: (parent, args) => fakeStore.workSets[args.id], //TODO
     },
     /* real queries start here */ //TODO
     documents: {

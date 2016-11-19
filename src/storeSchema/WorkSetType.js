@@ -1,8 +1,7 @@
 'use strict';
 const {GraphQLObjectType, GraphQLNonNull, GraphQLList, GraphQLString} = require('graphql'),
   DocumentType = require('./DocumentType'),
-  ReferenceType = require('./ReferenceType'),
-  fakeStore = require('../fakeStore');
+  ReferenceType = require('./ReferenceType');
 
 module.exports = new GraphQLObjectType({
   name: 'WorkSet',
@@ -12,7 +11,7 @@ module.exports = new GraphQLObjectType({
     },
     coreDocuments: {
       type: new GraphQLNonNull(new GraphQLList(DocumentType)),
-      resolve: workSet => workSet.coreDocumentIds.map(documentId => fakeStore.documents[documentId]),
+      // resolve: workSet => workSet.coreDocumentIds.map(documentId => fakeStore.documents[documentId]), // TODO
     },
     references: {
       type: new GraphQLNonNull(new GraphQLList(ReferenceType)),
