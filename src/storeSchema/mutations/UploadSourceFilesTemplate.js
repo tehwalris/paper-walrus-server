@@ -1,5 +1,5 @@
 'use strict';
-const {GraphQLString, GraphQLInt, GraphQLList, GraphQLNonNull, GraphQLInputObjectType, GraphQLObjectType} = require('graphql'),
+const {GraphQLString, GraphQLList, GraphQLNonNull, GraphQLInputObjectType, GraphQLObjectType} = require('graphql'),
   uuid = require('uuid').v4,
   mime = require('mime'),
   {toPairs} = require('lodash'),
@@ -23,6 +23,7 @@ module.exports = {
       type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(new GraphQLObjectType({
         name: 'FileUploadTarget',
         fields: {
+          key: {type: new GraphQLNonNull(GraphQLString)},
           postUrl: {type: new GraphQLNonNull(GraphQLString)},
           formData: {type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(new GraphQLObjectType({
             name: 'FileUploadFormDataEntry',
@@ -38,14 +39,16 @@ module.exports = {
   mutateAndGetPayload: async (input, context) => {
     // TODO check file sizes and types
     const uploadTargets = await Promise.all(input.plannedUploadInfo.map(fileInfo => {
+      const key = `${uuid()}.${mime.extension(fileInfo.type)}`;
       const policy = context.minio.newPostPolicy();
       policy.setBucket(context.config.minioBucket);
-      policy.setKey(uuid() + '.' + mime.extension(fileInfo.type));
+      policy.setKey(key);
       policy.setContentType(fileInfo.type);
       var expires = new Date();
       expires.setSeconds(24*60*60); // TODO move to config
       policy.setExpires(expires);
       return context.minio.presignedPostPolicy(policy).then(({postURL, formData}) => ({
+        key,
         postUrl: postURL,
         formData: toPairs(formData).map(([key, value]) => ({key, value})),
       }));

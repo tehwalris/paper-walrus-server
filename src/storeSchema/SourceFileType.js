@@ -14,7 +14,8 @@ module.exports = new GraphQLObjectType({
     },
     previewUrl: {
       type: GraphQLString,
-      resolve: ({previewFilename}, args, {config, minio}) => minio.presignedGetObject(config.minioBucket, previewFilename),
+      resolve: ({previewFilename}, args, {config, minio}) =>
+        (previewFilename && minio.presignedGetObject(config.minioBucket, previewFilename)),
     },
     filename: {
       type: new GraphQLNonNull(GraphQLString),
