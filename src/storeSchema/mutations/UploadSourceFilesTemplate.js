@@ -20,7 +20,7 @@ module.exports = {
   },
   outputFields: {
     uploadTargets: {
-      type: new GraphQLNonNull(new GraphQLObjectType({
+      type: new GraphQLNonNull(new GraphQLList(new GraphQLNonNull(new GraphQLObjectType({
         name: 'FileUploadTarget',
         fields: {
           postUrl: {type: new GraphQLNonNull(GraphQLString)},
@@ -32,7 +32,7 @@ module.exports = {
             },
           }))))},
         },
-      })),
+      })))),
     },
   },
   mutateAndGetPayload: async (input, context) => {
@@ -42,7 +42,9 @@ module.exports = {
       policy.setBucket(context.config.minioBucket);
       policy.setKey(uuid() + '.' + mime.extension(fileInfo.type));
       policy.setContentType(fileInfo.type);
-      policy.setExpires(24*60*60); // TODO move to config
+      var expires = new Date();
+      expires.setSeconds(24*60*60); // TODO move to config
+      policy.setExpires(expires);
       return context.minio.presignedPostPolicy(policy).then(({postURL, formData}) => ({
         postUrl: postURL,
         formData: toPairs(formData).map(([key, value]) => ({key, value})),
