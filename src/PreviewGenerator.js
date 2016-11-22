@@ -1,3 +1,35 @@
+const sharp = require('sharp'),
+  uuid = require('uuid').v4,
+  databaseHelpers = require('./databaseHelpers');
+
+module.exports = class PreviewGenerator {
+  constructor({knex, minio}, minioBucket, previewConfig) {
+    this._knex = knex;
+    this._minio = minio;
+    this._minioBucket = minioBucket;
+    this._previewConfig = previewConfig;
+  }
+
+  isSupportedInputType(type) {
+    return this._previewConfig.supportedInputTypes.includes(type);
+  }
+
+  async generate(sourceFileId, originalKey) {
+    const originalStream = await this._minio.getObject(this._minioBucket, originalKey);
+    const {width, height} = this._previewConfig.minSize;
+    const transformer = sharp().resize(width, height).min().jpeg();
+    originalStream.pipe(transformer);
+    const previewBuffer = await transformer.toBuffer();
+    const previewKey = `${uuid()}.jpeg`;
+    await this._minio.putObject(
+      this._minioBucket, previewKey, previewBuffer, 'image/jpeg',
+    );
+    await databaseHelpers.sourceFiles.updateById(
+      {knex: this._knex}, sourceFileId, {previewFilename: previewKey}
+    );
+  }
+}
+ /*
 const lwip = require('lwip'),
   path = require('path'),
   uuid = require('uuid').v4,
@@ -32,3 +64,4 @@ module.exports = class PreviewGenerator {
     });
   }
 }
+*/

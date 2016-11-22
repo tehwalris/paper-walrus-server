@@ -18,10 +18,11 @@ function convertToPublicUrl(originalUrl, publicPath) {
 
 function promisifyClient(rawClient, publicPath) {
   const client = clone(rawClient);
-  const functionsToPromisify = ['makeBucket', 'getObject', 'presignedGetObject', 'getBucketNotification', 'listBuckets', 'getPartialObject', 'presignedPutObject', 'setBucketNotification', 'bucketExists', 'fGetObject', 'removeAllBucketNotification', 'removeBucket', 'putObject', 'getBucketPolicy', 'listObjects', 'fPutObject', 'setBucketPolicy', 'listObjectsV2', 'copyObject', 'listIncompleteUploads', 'statObject', 'removeObject', 'removeIncompleteUpload'];
+  const functionsToPromisify = ['makeBucket', 'getObject', 'presignedGetObject', 'getBucketNotification', 'listBuckets', 'getPartialObject', 'presignedPutObject', 'setBucketNotification', 'bucketExists', 'fGetObject', 'removeAllBucketNotification', 'removeBucket', 'getBucketPolicy', 'listObjects', 'fPutObject', 'setBucketPolicy', 'listObjectsV2', 'copyObject', 'listIncompleteUploads', 'statObject', 'removeObject', 'removeIncompleteUpload'];
   functionsToPromisify.forEach(name => {
     client[name] = promisify(client[name]);
   });
+
   // Original would be inconvenient to use after promisify
   const originalBucketExists = client.bucketExists.bind(client);
   client.bucketExists = async function(bucket) {
@@ -34,13 +35,29 @@ function promisifyClient(rawClient, publicPath) {
       throw err;
     }
   }
+
+  // Standard promisify would not deal with varying argument counts here
+  const originalPutObject = client.putObject.bind(client);
+  client.putObject = (...args) => {
+    return new Promise((resolve, reject) => {
+      originalPutObject(...args, (err, etag) => {
+        if(err)
+          reject(err);
+        else
+          resolve(etag);
+      });
+    });
+  }
+
   // HACK communication to minio goes over different urls externally and internally
   const originalPresignedGetObject = client.presignedGetObject.bind(client);
   client.presignedGetObject = async (bucketName, objectName) => 
     convertToPublicUrl(await originalPresignedGetObject(bucketName, objectName),  publicPath);
+
   const originalPresignedPutObject = client.presignedPutObject.bind(client);
   client.presignedPutObject = async (bucketName, objectName) =>
     convertToPublicUrl(await originalPresignedPutObject(bucketName, objectName), publicPath);
+
   const originalPresignedPostPolicy = rawClient.presignedPostPolicy.bind(client);
   client.presignedPostPolicy = (policy) => {
     return new Promise((resolve, reject) => {
@@ -55,6 +72,7 @@ function promisifyClient(rawClient, publicPath) {
       });
     });
   }
+
   return client;
 }
 

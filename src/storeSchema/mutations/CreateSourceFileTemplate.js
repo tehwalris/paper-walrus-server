@@ -18,7 +18,9 @@ module.exports = {
       filename: input.key,
       mimeType: statResult.contentType,
     };
-    await databaseHelpers.sourceFiles.create(context, sourceFile);
+    const [id] = await databaseHelpers.sourceFiles.create(context, sourceFile).returning('id');
+    if(context.previewGenerator.isSupportedInputType(statResult.contentType))
+      await context.previewGenerator.generate(id, input.key);
     return {};
   },
 };

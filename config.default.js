@@ -10,11 +10,13 @@ module.exports = {
   port: 3000,
   allowedMimeTypes: ['image/jpeg', 'image/png', 'application/pdf', 'text/plain'],
   contentCacheMaxAge: 2e9, // A few weeks in ms
-  previewSize: {
-    width: 200,
-    height: 200,
+  preview: {
+    minSize: {
+      width: 198*2,
+      height: 198*2,
+    },
+    supportedInputTypes: ['image/jpeg', 'image/png'],
   },
-  previewExtension: 'jpg',
   sessionDuration: '7 days',
   knex: {
     client: 'pg',

@@ -12,7 +12,8 @@ const _ = require('lodash'),
   configureMinio = require('./configureMinio'),
   databaseHelpers = require('./databaseHelpers'),
   storeSchema = require('./storeSchema'),
-  Authenticator = require('./Authenticator');
+  Authenticator = require('./Authenticator'),
+  PreviewGenerator = require('./PreviewGenerator');
 
 let config;
 try {
@@ -29,6 +30,7 @@ const start = async function() {
   const knex = await configureDatabase(config.knex);
   const minio = await configureMinio(config.minio, config.minioBucket, config.minioRegion, config.publicMinioPath);
   const authenticator = new Authenticator({knex}, jwtSecret, config.sessionDuration);
+  const previewGenerator = new PreviewGenerator({knex, minio}, config.minioBucket, config.preview);
 
   const app = express();
   const protectedRoutes = express.Router();
@@ -68,6 +70,7 @@ const start = async function() {
       minio,
       config,
       authenticator,
+      previewGenerator,
     },
   })));
 
