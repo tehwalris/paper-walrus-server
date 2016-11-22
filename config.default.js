@@ -29,8 +29,8 @@ module.exports = {
   },
   minio: {
     endPoint: process.env.MINIO_HOST || 'minio',
-    port: process.env.MINIO_PORT,
-    secure: true,
+    port: +process.env.MINIO_PORT,
+    secure: false, // Security must be provided by the production frontend
     accessKey: process.env.MINIO_ACCESS_KEY,
     secretKey: process.env.MINIO_SECRET_KEY,
   },
