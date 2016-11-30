@@ -4,6 +4,8 @@ node_js:
   - node
 services:
   - docker
+install:
+  - echo WARNING Only deploy step is used
 script:
   - echo WARNING Only deploy step is used
 deploy:
