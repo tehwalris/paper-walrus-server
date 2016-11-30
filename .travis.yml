@@ -1,0 +1,19 @@
+dist: trusty
+language: node_js
+node_js:
+  - node
+services:
+  - docker
+script:
+  - echo WARNING Only deploy step is used
+deploy:
+  provider: script
+  script: ./deploy.sh
+  on:
+    repo: tehwalris/paper-walrus-server
+env:
+  global:
+    - secure: >-
+        W9GFUGoiSwWYzTqXa1DCqaIzeFyyUV0FrXDZ4Ps4SRboUbOS5G14BTHQtiEtS1GYxbWR5WL54sqv3WEbyEpdLPf3Kf6u90WBpxc/i2lXlKUOCCEvRwkiQh3dqQ93xHwf4qbudc2I8CmIW6RnAH487brL18eiD6hjMazX6qg41lTVtLyaAIUlkROn332SfYli1gAcFc6eS2LYh9EzKbyKtu+Kg1ws3EJ3s92d5ALTC8833Ae9k/5d/oEnAae9MLvZ7E9Rn5ZRCGZuM0KNMaNliuHNs84U83PdI9tDa5e/VrA4UkHcmzspmdM1QR58oShnXgcPz/slx68eFXm/f2VVofrNkrn1CN/AiHNU0Y4n+cXTBo9ucm1HLsuC1kf6im0GsJUowtQbMkpFuEJ9XOSJYXTvZiaxWlZ4CGXV5IXVGWTskpPS1P7njLdJJQqzPcaW6XUCMgIDZDh+pn5nzJ0eOUpzHwaugcs/QWsMtUTN7klCjoxU/ueiPwMytWIjIHgTaihWjECQ39QYzf16V0FxuPogpvuVsomD2Y4l5SCq9okx9VmoNS/XYE3xkDwHa3krYi52Y+nfpT6DL86+c7U2gMsH5C0Xod1wgkaPWdiwi1+NBRdxAlUIxr7DMV3HRCUd+EKIF547L4YPj5/S+HCVKyDZQQDGicgPGQsn4gWn44o=
+    - secure: >-
+        P1XwbsUc7ZL3qUPVIu0s11An0XvVduCxzRtepI7xqq58C7BzeWJ2trdK/U8ug8OgpWESFeyMW6Q3BWQ2BUd+KsJUVs89yDZ+TmzTquyE4gFL/QlLwg1xBC9mWgVZMpL9YjqpAuuiXIGAGxrEIE5sWHImXiFezO6YvVi9WS4Dj5/50G5UEkxKXxH3k6UGK4zJkqgcS6P5CraD0GMQZewJHWGAilnShsVpPfPUvuPlTh3gcuGXfJialKlWDM1WQjv/Eo+ENzEBeCnsCgqNYWUJY90s8ASkwJVYLf2Au6n/FQDKWEoOxPqyFb+tyaBuFvSmHr0q4Hjpd6B+Jh7RVpTVF5/3u/uOb1clK6gAZvxkMfuOWGnWE96BPmQ8+EzKmz2OK2acpk/mxFWmi8qZ7D7QWcWK58Qe1A8VjQUGJURcdvt9Z85tP5lDodPt7EJciR2796gPdCy54WM8G9QEOsJaWe/2pR+84E6l9t8HXU7/xHZJ7vJEeCjxU79BxnF0DNWGcCCtU7mTMNPb5ZF5fBmft8kP2qg6aGXeMQojQuQ5A/35se8rpNdm35QNQ0W4rc9GKP+/MtsS/IlV2Y0S7GStG9a6olWKcZy6bcCDYlmxCKxJvJMCe5Lb76rGbp390UaYoLGwOmVko4W5NOeIj89Gk1rCpym2cnh7FH6pmFRtDYQ=
