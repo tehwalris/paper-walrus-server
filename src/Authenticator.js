@@ -37,8 +37,8 @@ class Authenticator {
     if(!passwordMatches)
       throw failure;
     return {
-      token: await this._createToken({userId: user.id}, {expresIn: this._sessionDuration}),
-      refreshToken: await this._createToken({userId: user.id}, {expresIn: this._refreshDuration}),
+      token: await this._createToken({userId: user.id}, {expiresIn: this._sessionDuration}),
+      refreshToken: await this._createToken({userId: user.id}, {expiresIn: this._refreshDuration}),
     }
   }
 
