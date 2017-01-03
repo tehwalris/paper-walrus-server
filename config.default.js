@@ -17,7 +17,8 @@ module.exports = {
     },
     supportedInputTypes: ['image/jpeg', 'image/png'],
   },
-  sessionDuration: '7 days',
+  sessionDuration: '2 hours',
+  refreshDuration: '6 hours',
   knex: {
     client: 'pg',
     connection: {

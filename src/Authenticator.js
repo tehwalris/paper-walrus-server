@@ -11,10 +11,20 @@ class UnauthorizedFailure {
 class Authenticator {
   static UnauthorizedFailure = UnauthorizedFailure;
 
-  constructor(context, secret, sessionDuration) {
+  constructor(context, secret, sessionDuration, refreshDuration) {
     this._context = context;
     this._secret = secret;
     this._sessionDuration = sessionDuration;
+    this._refreshDuration = refreshDuration;
+  }
+
+  _createToken(content, options) {
+    return new Promise((resolve, reject) => {
+      jwt.sign(content, this._secret, options, (err, token) => {
+        if(err) reject(err);
+        else resolve(token);
+      });
+    });
   }
 
   async authenticate({email, password}) {
@@ -26,14 +36,10 @@ class Authenticator {
     const passwordMatches = await this._passwordMatches(user.passwordHash, password);
     if(!passwordMatches)
       throw failure;
-    return await new Promise((resolve, reject) => {
-      jwt.sign({userId: user.id}, this._secret, {
-        expiresIn: this._sessionDuration,
-      }, (err, token) => {
-        if(err) reject(err);
-        else resolve(token);
-      });
-    });
+    return {
+      token: await this._createToken({userId: user.id}, {expresIn: this._sessionDuration}),
+      refreshToken: await this._createToken({userId: user.id}, {expresIn: this._refreshDuration}),
+    }
   }
 
   confirmAuthenticated(token) {

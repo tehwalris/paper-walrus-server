@@ -29,7 +29,7 @@ const start = async function() {
   const jwtSecret = uuid();
   const knex = await configureDatabase(config.knex);
   const minio = await configureMinio(config.minio, config.minioBucket, config.minioRegion, config.publicMinioPath);
-  const authenticator = new Authenticator({knex}, jwtSecret, config.sessionDuration);
+  const authenticator = new Authenticator({knex}, jwtSecret, config.sessionDuration, config.refreshDuration);
   const previewGenerator = new PreviewGenerator({knex, minio}, config.minioBucket, config.preview);
 
   const app = express();
@@ -38,8 +38,8 @@ const start = async function() {
 
   app.post('/authenticate', async (req, res) => {
     try {
-      const token = await authenticator.authenticate(req.body);
-      res.send({token});
+      const {token, refreshToken} = await authenticator.authenticate(req.body);
+      res.send({token, refreshToken});
     } catch (e) {
       const message = (e instanceof Authenticator.UnauthorizedFailure)
         ? e.message
@@ -61,7 +61,7 @@ const start = async function() {
     }
   });
 
-  protectedRoutes.use('/graphql', graphqlHttp(({token}) => ({
+  const graphqlHttpServer = graphqlHttp(({token}) => ({
     schema: storeSchema,
     graphiql: true,
     context: {
@@ -72,7 +72,9 @@ const start = async function() {
       authenticator,
       previewGenerator,
     },
-  })));
+  }))
+
+  protectedRoutes.use('/graphql', graphqlHttpServer);
 
   app.use(protectedRoutes);
 
