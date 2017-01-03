@@ -41,10 +41,10 @@ const start = async function() {
       const {token, refreshToken} = await authenticator.authenticate(req.body);
       res.send({token, refreshToken});
     } catch (e) {
-      const message = (e instanceof Authenticator.UnauthorizedFailure)
-        ? e.message
-        : 'Authentication failed.';
-      res.status(401).send(message)
+      if (!e instanceof Authenticator.UnauthorizedFailure) {
+        console.error('Error while trying to authenticate user.', e);
+      }
+      res.status(401).send('Authentication failed.')
     }
   });
 
@@ -54,10 +54,10 @@ const start = async function() {
       req.token = await authenticator.confirmAuthenticated(token);
       next();
     } catch (e) {
-      const message = (e instanceof Authenticator.UnauthorizedFailure)
-        ? e.message
-        : 'Authentication failed.';
-      res.status(401).send(message)
+      if (!e instanceof Authenticator.UnauthorizedFailure) {
+        console.error('Error while trying access protected route.', e);
+      }
+      res.status(401).send('Authentication failed.')
     }
   });
 
