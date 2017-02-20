@@ -19,6 +19,7 @@ module.exports = {
         return databaseHelpers.documents.getById(context, documentId);
       },
     },
+    viewer: viewerField,
   },
   mutateAndGetPayload: (input, context) => {
     const documentId = fromGlobalId(input.documentId).id;
