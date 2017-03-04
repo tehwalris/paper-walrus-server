@@ -48,6 +48,18 @@ const start = async function() {
     }
   });
 
+  app.post('/authenticate/refresh', async (req, res) => {
+    try {
+      const {token, refreshToken} = await authenticator.authenticateWithRefreshToken(req.body);
+      res.send({token, refreshToken});
+    } catch (e) {
+      if (!(e instanceof Authenticator.UnauthorizedFailure)) {
+        console.error('Error while trying to authenticate user with refresh token.', e);
+      }
+      res.status(401).send('Authentication failed.')
+    }
+  });
+
   protectedRoutes.use(async function(req, res, next) {
     const token = req.headers['x-access-token'];
     try {

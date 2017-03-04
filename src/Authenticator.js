@@ -8,6 +8,8 @@ class UnauthorizedFailure {
   }
 }
 
+const failure = new UnauthorizedFailure('Authentication failed.');
+
 class Authenticator {
   static UnauthorizedFailure = UnauthorizedFailure;
 
@@ -18,39 +20,24 @@ class Authenticator {
     this._refreshDuration = refreshDuration;
   }
 
-  _createToken(content, options) {
-    return new Promise((resolve, reject) => {
-      jwt.sign(content, this._secret, options, (err, token) => {
-        if(err) reject(err);
-        else resolve(token);
-      });
-    });
-  }
-
   async authenticate({email, password}) {
     //auth resolve token or reject unauthorized
-    const failure = new UnauthorizedFailure('Authentication failed.');
     const user = await databaseHelpers.users.getByEmail(this._context, email);
     if(!user)
       throw failure;
     const passwordMatches = await this._passwordMatches(user.passwordHash, password);
     if(!passwordMatches)
       throw failure;
-    return {
-      token: await this._createToken({userId: user.id}, {expiresIn: this._sessionDuration}),
-      refreshToken: await this._createToken({userId: user.id}, {expiresIn: this._refreshDuration}),
-    }
+    return await this._createTokens(user.id);
+  }
+
+  async authenticateWithRefreshToken({refreshToken}) {
+    const decodedToken = await this._verifyToken(refreshToken);
+    return await this._createTokens(decodedToken.userId);
   }
 
   confirmAuthenticated(token) {
-    return new Promise((resolve, reject) => {
-      jwt.verify(token, this._secret, function(err, decoded) {
-        if(err)
-          reject(new UnauthorizedFailure('Unauthorized token.'));
-        else
-          resolve(decoded);
-      });
-    });
+    return this._verifyToken(token);
   }
 
   hashPassword(password) {
@@ -67,6 +54,33 @@ class Authenticator {
       bcrypt.compare(input, hash, (err, result) => {
         if(err) reject(err);
         else resolve(result);
+      });
+    });
+  }
+
+  _createToken(content, options) {
+    return new Promise((resolve, reject) => {
+      jwt.sign(content, this._secret, options, (err, token) => {
+        if(err) reject(err);
+        else resolve(token);
+      });
+    });
+  }
+
+  async _createTokens(userId) {
+    return {
+      token: await this._createToken({userId}, {expiresIn: this._sessionDuration}),
+      refreshToken: await this._createToken({userId}, {expiresIn: this._refreshDuration}),
+    }
+  }
+
+  _verifyToken(token) {
+    return new Promise((resolve, reject) => {
+      jwt.verify(token, this._secret, function(err, decoded) {
+        if(err)
+          reject(new UnauthorizedFailure('Unauthorized token.'));
+        else
+          resolve(decoded);
       });
     });
   }

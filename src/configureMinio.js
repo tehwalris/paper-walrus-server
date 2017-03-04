@@ -1,4 +1,4 @@
-const Minio = require('minio'),
+const {Client: Minio} = require('minio'),
   promisify = require('promisify-node'),
   url = require('url'),
   path = require('path'),
